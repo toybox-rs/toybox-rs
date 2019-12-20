@@ -1,7 +1,10 @@
 [package]
 name = "ctoybox"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>"]
+readme = "README.md"
+homepage = "https://github.com/toybox-rs/toybox-rs"
+publish = false
 
 [lib]
 name = "ctoybox"
@@ -9,8 +12,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 libc = "0.2"
-serde = "*"
-serde_json = "*"
+serde = "1"
+serde_json = "1"
 amidar = {path = "../tb_amidar", version="*"}
 breakout = {path = "../tb_breakout", version="*"}
 toybox = {path = "../toybox", version="*"}
@@ -19,3 +22,9 @@ toybox = {path = "../toybox", version="*"}
 version = "*"
 path = "../core"
 
+[package.metadata.maturin]
+requires-dist = ["pillow", "cffi", "numpy"]
+classifier = [
+  "Programming Language :: Python :: 3.5",
+  "Operating System :: OS Independent",
+]
