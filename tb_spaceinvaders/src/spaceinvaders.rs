@@ -1068,25 +1068,6 @@ impl toybox_core::State for State {
             output.push(Drawable::DestructibleSprite(shield.clone()));
         }
 
-        // Calculate the rectangle that surrounds all living enemies.
-        let rectangle: Vec<Rect> = self
-            .state
-            .enemies
-            .iter()
-            .filter(|e| e.alive)
-            .map(|e| e.rect())
-            .collect();
-        let rect_union = Rect::merge(&rectangle);
-        if let Some(rect) = rect_union {
-            output.push(Drawable::rect(
-                Color::rgb(100, 0, 0),
-                rect.x,
-                rect.y,
-                rect.w,
-                rect.h,
-            ));
-        }
-
         let enemy_orient = self.state.enemies_movement.visual_orientation;
         for enemy in self.state.enemies.iter().filter(|e| e.alive) {
             output.push(Drawable::sprite(

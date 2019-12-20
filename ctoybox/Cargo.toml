@@ -1,8 +1,9 @@
 [package]
 name = "ctoybox"
-version = "0.2.0"
-authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>"]
+version = "0.2.1"
+authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>", "John Foley <jjfoley@smith.edu>", "Kaleigh Clary <kclary@cs.umass.edu>"]
 readme = "README.md"
+description = "Package containing Rust Toybox games."
 homepage = "https://github.com/toybox-rs/toybox-rs"
 publish = false
 

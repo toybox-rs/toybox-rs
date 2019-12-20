@@ -1,6 +1,8 @@
 target
 Cargo.lock
 venv
+.vscode
+*~
 *.pyc
 __pycache__
 *.wheel
