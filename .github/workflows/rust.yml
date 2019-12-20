@@ -2,6 +2,7 @@ name: CI
 
 on:
   create:
+  pull-request:
   push: 
   schedule:
     # Runs every thursday at 23:23 GMT. This should make sure this syntax and rust dependencies do not rot for too long.
@@ -27,25 +28,27 @@ jobs:
         uses: actions/setup-python@v1.1.1
         with:
           python-version: 3.5
-      - name: rust-cargo
-        uses: actions-rs/cargo@v1.0.1
-        with:
-          command: test --release
-      - run: |
+      - name: cargo test
+        run: |
+          cargo test --release
+      - name: py-install
+        run: |
           pip install -r ctoybox/requirements.txt
           pip install maturin
-      - name: py-install
+      - name: build-wheel
         working-directory: ./ctoybox
         run: |
           maturin build --release
           pip install ../target/wheels/ctoybox*.whl
+      - name: py-unittest
+        working-directory: ./ctoybox
           python -I -m unittest discover -s tests -v
       - uses: actions/upload-artifact@v1
         name: upload-wheel
         with:
           name: ${{ matrix.platform }}-wheel
           path: target/wheels/
-      - name: pypi-publish
+      - name: '[on-create]' pypi-publish
         if: github.event_name == 'create'
         working-directory: ./ctoybox
         env: 
