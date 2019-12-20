@@ -1,6 +1,11 @@
 name: CI
 
-on: [push]
+on:
+  create:
+  push: 
+  schedule:
+    # Runs every thursday at 23:23 GMT. This should make sure this syntax and rust dependencies do not rot for too long.
+    - cron:  '23 23 * * 4'
 
 jobs:
   build:
@@ -40,3 +45,9 @@ jobs:
         with:
           name: ${{ matrix.platform }}-debug-wheel
           path: target/wheels/
+      - name: pypi-publish
+        if: github.event_name == "create"
+        working-directory: ./ctoybox
+        env: 
+          MATURIN_PASSWORD: ${{ secrets.CTOYBOX_PYPI_TOKEN }}
+        run: maturin publish -b cffi --username __token__
