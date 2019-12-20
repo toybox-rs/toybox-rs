@@ -1,4 +1,4 @@
-# toybox-rs ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/rustfmt-check/badge.svg) ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/Tests/badge.svg)
+# toybox-rs ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/rustfmt-check/badge.svg) ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/CI/badge.svg)
 Rust packages and for Toybox; separately versioned from Python code.
 
 ## What is Toybox?
