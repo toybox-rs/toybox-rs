@@ -1,15 +1,42 @@
-name: Tests
+name: CI
 
 on: [push]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest, macOS-latest ]
+    runs-on: ${{ matrix.platform }}
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - name: checkout
+        uses: actions/checkout@v1
+      - name: Setup Rust environment
+        uses: actions-rs/toolchain@v1
+        with:
+            profile: minimal
+            toolchain: stable
+            override: true
+      - name: Setup Python environment
+        uses: actions/setup-python@v1.1.1
+        with:
+          python-version: 3.5
+      - name: rust-cargo
+        uses: actions-rs/cargo@v1.0.1
+        with:
+          command: test
+      - run: |
+          pip install -r ctoybox/requirements.txt
+          pip install maturin
+      - name: py-install
+        working-directory: ./ctoybox
+        run: |
+          maturin build
+          pip install ../target/wheels/ctoybox*.whl
+          python -I -m unittest discover -s tests -v
+      - uses: actions/upload-artifact@v1
+        name: upload-wheel
+        with:
+          name: ${{ matrix.platform }}-debug-wheel
+          path: target/wheels/
