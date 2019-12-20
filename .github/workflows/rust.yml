@@ -48,7 +48,7 @@ jobs:
         with:
           name: ${{ matrix.platform }}-wheel
           path: target/wheels/
-      - name: '[on-create]' pypi-publish
+      - name: '[on-create] pypi-publish'
         if: github.event_name == 'create'
         working-directory: ./ctoybox
         env: 
