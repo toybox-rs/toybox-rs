@@ -1,0 +1,21 @@
+[package]
+name = "ctoybox"
+version = "0.1.0"
+authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>"]
+
+[lib]
+name = "ctoybox"
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "0.2"
+serde = "*"
+serde_json = "*"
+amidar = {path = "../tb_amidar", version="*"}
+breakout = {path = "../tb_breakout", version="*"}
+toybox = {path = "../toybox", version="*"}
+
+[dependencies.toybox-core]
+version = "*"
+path = "../core"
+
