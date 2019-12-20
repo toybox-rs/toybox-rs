@@ -42,6 +42,7 @@ jobs:
           pip install ../target/wheels/ctoybox*.whl
       - name: py-unittest
         working-directory: ./ctoybox
+        run: |
           python -I -m unittest discover -s tests -v
       - uses: actions/upload-artifact@v1
         name: upload-wheel
