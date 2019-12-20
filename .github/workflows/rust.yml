@@ -37,16 +37,16 @@ jobs:
       - name: py-install
         working-directory: ./ctoybox
         run: |
-          maturin build
+          maturin build --release
           pip install ../target/wheels/ctoybox*.whl
           python -I -m unittest discover -s tests -v
       - uses: actions/upload-artifact@v1
         name: upload-wheel
         with:
-          name: ${{ matrix.platform }}-debug-wheel
+          name: ${{ matrix.platform }}-wheel
           path: target/wheels/
       - name: pypi-publish
-        if: github.event_name == "create"
+        if: github.event_name == 'create'
         working-directory: ./ctoybox
         env: 
           MATURIN_PASSWORD: ${{ secrets.CTOYBOX_PYPI_TOKEN }}
