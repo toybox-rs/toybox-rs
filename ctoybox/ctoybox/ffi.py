@@ -74,7 +74,7 @@ class Input():
             assert False
 
         # reset buttons
-        if   button == Input._NOOP:
+        if button == Input._NOOP:
             pass
         elif button == Input._BUTTON1:
             self.button1 = True
@@ -85,13 +85,21 @@ class Input():
 
 
 def rust_str(result):
-    txt = ffi.cast("char *", result) #.value.decode('UTF-8')
-    txt = ffi.string(txt).decode('UTF-8')
-    lib.free_str(result)
-    return txt
+    """
+    Make a copy of a rust String and immediately free it!
+    """
+    try:
+        txt = ffi.cast("char *", result)
+        txt = ffi.string(txt).decode('UTF-8')
+        return txt
+    finally:
+        lib.free_str(result)
 
 
 def json_str(js):
+    """
+    Turn an object into a JSON string -- handles dictionaries, the Input class, and JSON you've already prepared (e.g., strings).
+    """
     if type(js) is dict:
         js = json.dumps(js)
     elif type(js) is Input:
@@ -101,6 +109,10 @@ def json_str(js):
     return js
 
 class Simulator(object):
+    """
+    The Simulator is an instance of a game configuration.
+    You can call new_game on it to begin.
+    """
     def __init__(self, game_name, sim=None):
         if sim is None:
             sim = lib.simulator_alloc(game_name.encode('utf-8'))
@@ -151,6 +163,12 @@ class Simulator(object):
 
 
 class State(object):
+    """
+    The State object represents everything the game needs to know about any single simulated frame.
+    You can rewind in time by storing and restoring these state representations.
+    Access the json: to_json
+    Access the image: render_frame
+    """
     def __init__(self, sim, state=None):
         self.__state = state or lib.state_alloc(sim.get_simulator())
         self.game_name = sim.game_name
@@ -223,6 +241,13 @@ class State(object):
         return json.loads(str(json_str))
 
 class Toybox(object):
+    """
+    This is a stateful representation of Toybox -- since it manages memory, we provide __enter__ and __exit__ usage for Python's with-blocks:
+
+    >>> with Toybox("amidar") as tb:
+          print(tb.get_score())
+    >>> # the 'tb' variable only lives in the block.
+    """
     def __init__(self, game_name, grayscale=True, frameskip=0):
         self.game_name = game_name
         self.frames_per_action = frameskip+1
