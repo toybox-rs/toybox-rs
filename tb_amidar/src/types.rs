@@ -1,3 +1,4 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use toybox_core::graphics::Color;
 use toybox_core::random;
@@ -5,7 +6,7 @@ use toybox_core::Direction;
 
 use std::collections::{HashSet, VecDeque};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Amidar {
     pub rand: random::Gen,
     pub board: Vec<String>,
@@ -40,20 +41,20 @@ pub struct ScreenPoint {
 }
 
 /// Strongly-typed vector for "world" positioning in Amidar.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct WorldPoint {
     pub x: i32,
     pub y: i32,
 }
 
 /// Strongly-typed vector for "tile" positioning in Amidar.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct TilePoint {
     pub tx: i32,
     pub ty: i32,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct GridBox {
     pub top_left: TilePoint,
     pub bottom_right: TilePoint,
@@ -61,7 +62,7 @@ pub struct GridBox {
     pub triggers_chase: bool,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize, JsonSchema)]
 pub enum Tile {
     Empty,
     Unpainted,
@@ -69,7 +70,7 @@ pub enum Tile {
     Painted,
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum MovementAI {
     Player,
     EnemyLookupAI {
@@ -101,7 +102,7 @@ pub enum MovementAI {
 }
 
 /// Mob is a videogame slang for "mobile" unit. Players and Enemies are the same struct.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Mob {
     pub ai: MovementAI,
     pub position: WorldPoint,
@@ -111,7 +112,7 @@ pub struct Mob {
     pub history: VecDeque<u32>,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Board {
     pub tiles: Vec<Vec<Tile>>,
     pub width: u32,
@@ -121,7 +122,7 @@ pub struct Board {
     pub boxes: Vec<GridBox>,
 }
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct BoardUpdate {
     pub vertical: i32,
     pub horizontal: i32,
@@ -130,7 +131,7 @@ pub struct BoardUpdate {
     pub junctions: Option<(u32, u32)>,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct StateCore {
     pub rand: random::Gen,
     pub score: i32,
@@ -149,7 +150,7 @@ pub struct State {
     pub state: StateCore,
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, JsonSchema)]
 pub enum EnemyPlayerState {
     Miss,
     PlayerDeath,

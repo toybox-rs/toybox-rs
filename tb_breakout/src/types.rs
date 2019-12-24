@@ -1,10 +1,11 @@
 use super::body2d::Body2D;
 use super::vec2d::Vec2D;
+use schemars::JsonSchema;
 use toybox_core::graphics::Color;
 use toybox_core::random;
 
 /// Breakout is configured to sample randomly from ball starting positions. This struct contains all the information needed to add a new option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct StartBall {
     /// Where does the ball start? Horizontal positioning.
     pub x: f64,
@@ -27,7 +28,7 @@ impl StartBall {
 
 /// This struct represents all the static data needed to create a new game of Breakout.
 /// The data in this struct represents the Toybox config for this game.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Breakout {
     /// Random number generator used to seed new games. The randomness in breakout is derived from the starting ball configurations.
     pub rand: random::Gen,
@@ -58,7 +59,7 @@ pub struct Breakout {
 }
 
 /// This data structure represents a Brick in the breakout game. Bricks are present in state even if they are destroyed, thus the presence of the "alive" boolean.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Brick {
     // Logical y-coordinates of this brick; used for analysis.
     pub row: i32,
@@ -81,7 +82,7 @@ pub struct Brick {
 }
 
 /// This struct contains the per-frame snapshot of mutable state in a Breakout game.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct StateCore {
     /// This random number generator is used to select the starting position and angle of the ball.
     pub rand: random::Gen,
@@ -108,6 +109,7 @@ pub struct StateCore {
 }
 
 /// The breakout game's true state has both the configuration that launched the game and information about the current frame.
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct State {
     /// This contains information about the game that does not change during gameplay, but is referenced, read-only.
     pub config: Breakout,

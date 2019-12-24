@@ -1,7 +1,7 @@
 use rand_core::{impls, Error, RngCore};
 
 /// This implementation is a xoroshiro128+ that is serde serializable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Gen {
     state: [u64; 2],
 }

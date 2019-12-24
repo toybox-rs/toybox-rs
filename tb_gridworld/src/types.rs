@@ -1,8 +1,9 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use toybox_core::graphics::Color;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct TileConfig {
     /// What reward (if any) is given or taken by passing this tile?
     pub reward: i32,
@@ -17,6 +18,7 @@ pub struct TileConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GridWorld {
     pub grid: Vec<String>,
+    /// TODO: char as key not JSON-schema-able...
     pub tiles: HashMap<char, TileConfig>,
     pub reward_becomes: char,
     pub player_color: Color,
@@ -30,7 +32,7 @@ pub struct State {
     pub frame: FrameState,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct FrameState {
     pub game_over: bool,
     pub score: i32,
@@ -42,7 +44,7 @@ pub struct FrameState {
 }
 
 /// Enumeration that supports diagonal movement.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub enum DiagonalDir {
     NE,
     N,

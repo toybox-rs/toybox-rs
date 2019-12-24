@@ -1,11 +1,12 @@
 use firing_ai::FiringAI;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use toybox_core::graphics::{Color, SpriteData};
 use toybox_core::random;
 use toybox_core::Direction;
 
 /// The player's ship is represented by this structure.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Player {
     /// The x-coordinate of the player; this is controllable.
     pub x: i32,
@@ -28,7 +29,7 @@ pub struct Player {
 }
 
 /// Each shot in SpaceInvaders by the player or the enemy is a Laser object.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Laser {
     /// The x-coordinate of the laser.
     pub x: i32,
@@ -49,7 +50,7 @@ pub struct Laser {
 }
 
 /// This struct represents both the Mothership and its appearance delay.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Ufo {
     /// The x-coordinate of the mothership position.
     pub x: i32,
@@ -61,7 +62,7 @@ pub struct Ufo {
 }
 
 /// This struct represents an enemy in Space Invaders.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Enemy {
     /// The enemy's current x-position.
     pub x: i32,
@@ -81,7 +82,7 @@ pub struct Enemy {
     pub death_counter: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct EnemiesMovementState {
     /// Delay between each step in movement; starts high, goes down over time.
     pub move_counter: i32,
@@ -92,7 +93,7 @@ pub struct EnemiesMovementState {
 }
 
 /// This struct represents the configuration for Space Invaders; all of these values cannot change from frame-to-frame but require a "new_game" reset to take effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct SpaceInvaders {
     /// What random numbers should be used as a seed for new games?
     pub rand: random::Gen,
@@ -109,7 +110,7 @@ pub struct SpaceInvaders {
 }
 
 /// This struct contains the state of Space Invaders; everything that can change from frame to frame is represented.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct StateCore {
     /// This random number generator is used for firing behavior.
     pub rand: random::Gen,
@@ -141,6 +142,7 @@ pub struct StateCore {
 }
 
 /// The unified state of SpaceInvaders contains both the config (read-only) and the frame state.
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct State {
     /// Constant configuration available to game logic.
     pub config: SpaceInvaders,

@@ -1,7 +1,8 @@
 use super::vec2d::Vec2D;
+use schemars::JsonSchema;
 
 /// A body is an object that has both position and velocity; e.g., a ball in Breakout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Body2D {
     /// Where this object is located in two dimensions.
     pub position: Vec2D,

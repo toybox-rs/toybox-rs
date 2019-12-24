@@ -1,6 +1,8 @@
+use schemars::JsonSchema;
+
 /// This represents a point or a size or a velocity in 2 dimensions.
 /// We use f64 for internal representations but we can get integer coordinates upon request for drawing.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Vec2D {
     /// The x-coordinate of this vector.
     pub x: f64,

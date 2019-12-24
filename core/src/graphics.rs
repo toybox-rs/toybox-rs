@@ -2,7 +2,7 @@ use png;
 use std::sync::Arc;
 
 /// For now we only support RGB colors so we don't have to do alpha-blending in our software renderer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Color {
     pub r: u8,
     pub b: u8,
@@ -135,7 +135,7 @@ impl FixedSpriteData {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct SpriteData {
     pub x: i32,
     pub y: i32,

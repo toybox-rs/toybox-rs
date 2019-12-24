@@ -1,9 +1,10 @@
 use rand::Rng;
+use schemars::JsonSchema;
 /// A collection of the possible firing protocols
 use types::{SpaceInvaders, StateCore};
 
 /// This enum represents the different enemy AI for firing in Space Invaders.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
 pub enum FiringAI {
     /// The default AI trades off between aiming at the user and random firing based on config.jitter.
     TargetPlayer,
