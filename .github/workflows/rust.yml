@@ -2,6 +2,7 @@ name: CI
 
 on:
   create:
+    tag:
   pull_request:
   push: 
   schedule:
