@@ -189,7 +189,7 @@ impl toybox_core::Simulation for Breakout {
     }
 
     /// Create a new game of breakout.
-    fn new_game(&mut self) -> Box<toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
         let mut bricks = Vec::new();
 
         let offset = Vec2D::new(
@@ -247,7 +247,7 @@ impl toybox_core::Simulation for Breakout {
     fn new_state_from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
         let state: StateCore = serde_json::from_str(json_str)?;
         Ok(Box::new(State {
             config: self.clone(),
@@ -255,7 +255,10 @@ impl toybox_core::Simulation for Breakout {
         }))
     }
 
-    fn from_json(&self, json_str: &str) -> Result<Box<toybox_core::Simulation>, serde_json::Error> {
+    fn from_json(
+        &self,
+        json_str: &str,
+    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
         let config: Breakout = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }
