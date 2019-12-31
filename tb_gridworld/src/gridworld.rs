@@ -224,6 +224,14 @@ impl toybox_core::Simulation for GridWorld {
         let config: GridWorld = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }
+
+    fn schema_for_config(&self) -> String {
+        panic!("TODO: GridWorld characters as keys.")
+    }
+    fn schema_for_state(&self) -> String {
+        let schema = schema_for!(FrameState);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
 }
 
 impl DiagonalDir {

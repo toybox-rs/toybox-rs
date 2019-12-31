@@ -10,6 +10,7 @@ serde_derive = "*"
 lazy_static = "*"
 itertools = "*"
 rand = "0.6.3"
+schemars = "0.6"
 
 [dependencies.toybox-core]
 version = "*"

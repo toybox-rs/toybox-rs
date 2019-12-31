@@ -1,6 +1,6 @@
 [package]
 name = "ctoybox"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>", "John Foley <jjfoley@smith.edu>", "Kaleigh Clary <kclary@cs.umass.edu>"]
 readme = "README.md"
 description = "Package containing Rust Toybox games."
@@ -18,6 +18,7 @@ serde_json = "1"
 amidar = {path = "../tb_amidar", version="*"}
 breakout = {path = "../tb_breakout", version="*"}
 toybox = {path = "../toybox", version="*"}
+schemars = "0.6"
 
 [dependencies.toybox-core]
 version = "*"

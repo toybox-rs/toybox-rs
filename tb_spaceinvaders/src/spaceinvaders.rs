@@ -903,6 +903,14 @@ impl toybox_core::Simulation for SpaceInvaders {
         let config: SpaceInvaders = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }
+    fn schema_for_config(&self) -> String {
+        let schema = schema_for!(SpaceInvaders);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
+    fn schema_for_state(&self) -> String {
+        let schema = schema_for!(StateCore);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
 }
 
 impl toybox_core::State for State {

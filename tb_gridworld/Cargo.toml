@@ -8,6 +8,7 @@ serde = "*"
 serde_json = "*"
 serde_derive = "*"
 lazy_static = "*"
+schemars = "0.6"
 
 [dependencies.toybox-core]
 version = "*"

@@ -160,6 +160,12 @@ class Simulator(object):
         old_sim = self.__sim
         self.__sim = lib.simulator_from_json(self.get_simulator(), json_str(config_js).encode('utf-8'))
         del old_sim
+    
+    def schema_for_state(self):
+        return json.loads(rust_str(lib.simulator_schema_for_state(self.__sim)))
+    
+    def schema_for_config(self):
+        return json.loads(rust_str(lib.simulator_schema_for_config(self.__sim)))
 
 
 class State(object):
@@ -356,3 +362,9 @@ class Toybox(object):
     
     def __exit__(self, exc_type, exc_value, traceback):
         self.__del__()
+    
+    def schema_for_state(self):
+        return self.rsimulator.schema_for_state()
+    
+    def schema_for_config(self):
+        return self.rsimulator.schema_for_config()

@@ -262,6 +262,15 @@ impl toybox_core::Simulation for Breakout {
     fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Breakout should be JSON-serializable!")
     }
+
+    fn schema_for_config(&self) -> String {
+        let schema = schema_for!(Breakout);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
+    fn schema_for_state(&self) -> String {
+        let schema = schema_for!(StateCore);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
 }
 
 impl State {

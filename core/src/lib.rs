@@ -2,6 +2,8 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate schemars;
 extern crate png;
 
 pub mod collision;
@@ -68,4 +70,9 @@ pub trait Simulation {
 
     /// Legal action set:
     fn legal_action_set(&self) -> Vec<AleAction>;
+
+    /// Getter for JSON Schema for this game's state.
+    fn schema_for_state(&self) -> String;
+    /// Getter for JSON Schema for this game's config.
+    fn schema_for_config(&self) -> String;
 }

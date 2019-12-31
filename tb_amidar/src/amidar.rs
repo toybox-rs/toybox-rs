@@ -1106,6 +1106,15 @@ impl toybox_core::Simulation for Amidar {
         let config: Amidar = serde_json::from_str(json_config)?;
         Ok(Box::new(config))
     }
+
+    fn schema_for_config(&self) -> String {
+        let schema = schema_for!(Amidar);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
+    fn schema_for_state(&self) -> String {
+        let schema = schema_for!(StateCore);
+        serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
+    }
 }
 
 impl toybox_core::State for State {
