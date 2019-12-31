@@ -116,7 +116,7 @@ pub extern "C" fn state_alloc(ptr: *mut WrapSimulator) -> *mut WrapState {
         assert!(!ptr.is_null());
         &mut *ptr
     };
-    let state: Box<State> = simulator.new_game();
+    let state: Box<dyn State> = simulator.new_game();
     let boxed_wrapped_state: Box<WrapState> = Box::new(WrapState { state });
     Box::into_raw(boxed_wrapped_state)
 }

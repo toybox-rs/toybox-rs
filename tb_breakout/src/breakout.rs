@@ -189,7 +189,7 @@ impl toybox_core::Simulation for Breakout {
     }
 
     /// Create a new game of breakout.
-    fn new_game(&mut self) -> Box<toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
         let mut bricks = Vec::new();
 
         let offset = Vec2D::new(
@@ -229,7 +229,8 @@ impl toybox_core::Simulation for Breakout {
                 is_dead: true,
                 // paddle starts in middle
                 paddle: self.start_paddle(),
-                points: 0,
+                score: 0,
+                level: 0,
                 ball_radius: 2.0,
                 paddle_width: screen::PADDLE_START_SIZE.0.into(),
                 paddle_speed: 4.0,
@@ -246,7 +247,7 @@ impl toybox_core::Simulation for Breakout {
     fn new_state_from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
         let state: StateCore = serde_json::from_str(json_str)?;
         Ok(Box::new(State {
             config: self.clone(),
@@ -254,7 +255,10 @@ impl toybox_core::Simulation for Breakout {
         }))
     }
 
-    fn from_json(&self, json_str: &str) -> Result<Box<toybox_core::Simulation>, serde_json::Error> {
+    fn from_json(
+        &self,
+        json_str: &str,
+    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
         let config: Breakout = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }
@@ -437,7 +441,7 @@ impl State {
                 if hit {
                     if brick.destructible {
                         brick.alive = false;
-                        self.state.points += brick.points;
+                        self.state.score += brick.points;
                     }
                     if brick.depth >= self.config.ball_speed_row_depth {
                         // Potentially speed up the ball. This will be a no-op if it's already fast.
@@ -468,7 +472,7 @@ impl toybox_core::State for State {
         self.state.lives
     }
     fn score(&self) -> i32 {
-        self.state.points
+        self.state.score
     }
 
     /// Mutably update the game state.
@@ -520,6 +524,7 @@ impl toybox_core::State for State {
 
         let reset_level = self.state.bricks.iter().all(|b| b.completed());
         if reset_level && self.state.reset {
+            // Win level; reset all bricks; reset balls:
             for b in self.state.bricks.iter_mut() {
                 b.alive = true;
             }
@@ -528,6 +533,7 @@ impl toybox_core::State for State {
             // New ball.
             self.start_ball();
             self.state.reset = false;
+            self.state.level += 1;
         }
     }
 
@@ -619,7 +625,7 @@ impl toybox_core::State for State {
         let lives_x = score_x + (DIGIT_WIDTH * 2);
         let thing_x = lives_x + (DIGIT_WIDTH * 2);
         // Draw points:
-        output.extend(draw_score(self.state.points, score_x, 1));
+        output.extend(draw_score(self.state.score, score_x, 1));
         // Draw lives:
         output.extend(draw_lives(self.state.lives, lives_x, 1));
         // Draw whatever this thing is
@@ -650,6 +656,7 @@ impl toybox_core::State for State {
             "channels" => serde_json::to_string(&state.find_channels())?,
             "num_columns" => serde_json::to_string(&screen::BRICKS_ACROSS)?,
             "num_rows" => serde_json::to_string(&screen::ROW_SCORES.len())?,
+            "level" => serde_json::to_string(&state.level)?,
             "config.ball_start_positions" => serde_json::to_string(&config.ball_start_positions)?,
             _ => Err(QueryError::NoSuchQuery)?,
         })

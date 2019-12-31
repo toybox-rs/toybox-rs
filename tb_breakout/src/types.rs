@@ -91,7 +91,9 @@ pub struct StateCore {
     /// The game does not proceed until the user presses the FIRE button to dispatch a new ball.
     pub is_dead: bool,
     /// How many points has the player earned?
-    pub points: i32,
+    pub score: i32,
+    /// How many levels has the player completed?
+    pub level: i32,
     /// Ball position describes the center of the ball.
     pub balls: Vec<Body2D>,
     /// How large is the ball? The ball is rendered as a squre and physics is calculated based on this.
