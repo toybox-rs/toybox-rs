@@ -3,7 +3,6 @@ name: CI
 on:
   create:
     tag:
-  pull_request:
   push: 
   schedule:
     # Runs every thursday at 23:23 GMT. This should make sure this syntax and rust dependencies do not rot for too long.
