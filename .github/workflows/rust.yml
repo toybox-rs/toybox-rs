@@ -3,6 +3,7 @@ name: CI
 on:
   create:
     tag:
+      - '*'
   push: 
   schedule:
     # Runs every thursday at 23:23 GMT. This should make sure this syntax and rust dependencies do not rot for too long.
@@ -50,7 +51,7 @@ jobs:
           name: ${{ matrix.platform }}-wheel
           path: target/wheels/
       - name: '[on-create] pypi-publish'
-        if: github.event_name == 'create' && github.ref_type == 'tag'
+        if: github.event_name == 'create'
         working-directory: ./ctoybox
         env: 
           MATURIN_PASSWORD: ${{ secrets.CTOYBOX_PYPI_TOKEN }}
