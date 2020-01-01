@@ -11,11 +11,11 @@ pub mod graphics;
 pub mod random;
 
 mod input;
-pub use input::AleAction;
-pub use input::Input;
+pub use crate::input::AleAction;
+pub use crate::input::Input;
 
 mod direction;
-pub use direction::Direction;
+pub use crate::direction::Direction;
 
 extern crate rand_core;
 

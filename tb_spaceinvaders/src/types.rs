@@ -1,4 +1,4 @@
-use firing_ai::FiringAI;
+use crate::firing_ai::FiringAI;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use toybox_core::graphics::{Color, SpriteData};

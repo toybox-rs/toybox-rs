@@ -2,12 +2,13 @@
 name = "toybox-core"
 version = "0.1.0"
 authors = ["John Foley <jfoley@cs.umass.edu>"]
+edition = "2018"
 
 [dependencies]
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
 png = "*"
-rand = "0.6.3"
-rand_core = "0.3.0"
+rand = { version = "0.6.3", default-features = false, features=["std"] }
+rand_core = { version = "0.3.0", default-features = false, features=["std"] }
 schemars = "0.6"

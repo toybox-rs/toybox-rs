@@ -2,6 +2,8 @@
 name = "space_invaders"
 version = "0.1.0"
 authors = ["John Foley <jfoley@cs.umass.edu>"]
+edition = "2018"
+publish = false
 
 [dependencies]
 serde = "*"
@@ -9,7 +11,7 @@ serde_json = "*"
 serde_derive = "*"
 lazy_static = "*"
 itertools = "*"
-rand = "0.6.3"
+rand = { version = "0.6.3", default-features = false, features=["std"] }
 schemars = "0.6"
 
 [dependencies.toybox-core]

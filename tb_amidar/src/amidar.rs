@@ -1,11 +1,11 @@
 use super::digit_sprites::{draw_score, DIGIT_HEIGHT};
+use crate::types::*;
 use serde_json;
 use std::collections::{HashSet, VecDeque};
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData};
 use toybox_core::random;
 use toybox_core::{AleAction, Direction, Input, QueryError};
-use types::*;
 
 use rand::seq::SliceRandom;
 

@@ -6,6 +6,7 @@ readme = "README.md"
 description = "Package containing Rust Toybox games."
 homepage = "https://github.com/toybox-rs/toybox-rs"
 publish = false
+edition = "2018"
 
 [lib]
 name = "ctoybox"

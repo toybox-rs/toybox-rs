@@ -17,11 +17,11 @@ mod spaceinvaders;
 mod types;
 
 // All types are essentially "public" API.
-pub use firing_ai::FiringAI;
-pub use types::Enemy;
-pub use types::Laser;
-pub use types::Player;
-pub use types::SpaceInvaders;
-pub use types::State;
-pub use types::StateCore;
-pub use types::Ufo;
+pub use crate::firing_ai::FiringAI;
+pub use crate::types::Enemy;
+pub use crate::types::Laser;
+pub use crate::types::Player;
+pub use crate::types::SpaceInvaders;
+pub use crate::types::State;
+pub use crate::types::StateCore;
+pub use crate::types::Ufo;

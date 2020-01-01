@@ -2,6 +2,8 @@
 name = "toybox"
 version = "0.1.0"
 authors = ["John Foley <jfoley@cs.umass.edu>"]
+edition = "2018"
+publish = false
 
 [dependencies]
 amidar = {path = "../tb_amidar", version="*", optional=true}
