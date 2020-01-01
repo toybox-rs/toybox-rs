@@ -26,6 +26,6 @@ mod font;
 /// This module contains the core data structures used in the game.
 mod types;
 
-pub use body2d::Body2D;
-pub use types::{Breakout, Brick, StartBall, State, StateCore};
-pub use vec2d::Vec2D;
+pub use crate::body2d::Body2D;
+pub use crate::types::{Breakout, Brick, StartBall, State, StateCore};
+pub use crate::vec2d::Vec2D;

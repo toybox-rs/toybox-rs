@@ -1,7 +1,7 @@
 use super::destruction;
 use super::font::{draw_score, get_sprite, FontChoice};
 use super::types::*;
-use firing_ai::{enemy_fire_lasers, FiringAI};
+use crate::firing_ai::{enemy_fire_lasers, FiringAI};
 use itertools::Itertools;
 use serde_json;
 use toybox_core::collision::Rect;

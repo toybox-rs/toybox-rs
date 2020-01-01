@@ -1,11 +1,11 @@
 use super::digit_sprites::{draw_score, DIGIT_HEIGHT};
+use crate::types::*;
 use serde_json;
 use std::collections::{HashSet, VecDeque};
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData};
 use toybox_core::random;
 use toybox_core::{AleAction, Direction, Input, QueryError};
-use types::*;
 
 use rand::seq::SliceRandom;
 
@@ -222,10 +222,10 @@ impl GridBox {
         let y1 = self.top_left.ty;
         let y2 = self.bottom_right.ty;
 
-        let top_and_bottom = (x1..(x2 + 1)).all(|xi| {
+        let top_and_bottom = (x1..=x2).all(|xi| {
             board.is_painted(&TilePoint::new(xi, y1)) && board.is_painted(&TilePoint::new(xi, y2))
         });
-        let left_and_right = (y1..(y2 + 1)).all(|yi| {
+        let left_and_right = (y1..=y2).all(|yi| {
             board.is_painted(&TilePoint::new(x1, yi)) && board.is_painted(&TilePoint::new(x2, yi))
         });
 
@@ -264,35 +264,35 @@ impl MovementAI {
     /// Resetting the mob AI state after player death.
     fn reset(&mut self) {
         match self {
-            &mut MovementAI::Player => {}
-            &mut MovementAI::EnemyLookupAI { ref mut next, .. } => {
+            MovementAI::Player => {}
+            MovementAI::EnemyLookupAI { ref mut next, .. } => {
                 *next = 0;
             }
-            &mut MovementAI::EnemyPerimeterAI { .. } => {}
-            &mut MovementAI::EnemyAmidarMvmt {
+            MovementAI::EnemyPerimeterAI { .. } => {}
+            MovementAI::EnemyAmidarMvmt {
                 ref mut vert,
                 start_vert,
                 ref mut horiz,
                 start_horiz,
                 ..
             } => {
-                *vert = start_vert;
-                *horiz = start_horiz;
+                *vert = *start_vert;
+                *horiz = *start_horiz;
             }
-            &mut MovementAI::EnemyRandomMvmt {
+            MovementAI::EnemyRandomMvmt {
                 ref mut dir,
                 start_dir,
                 ..
             } => {
-                *dir = start_dir;
+                *dir = *start_dir;
             }
-            &mut MovementAI::EnemyTargetPlayer {
+            MovementAI::EnemyTargetPlayer {
                 start_dir,
                 ref mut dir,
                 ref mut player_seen,
                 ..
             } => {
-                *dir = start_dir;
+                *dir = *start_dir;
                 *player_seen = None;
             }
         }
@@ -422,12 +422,10 @@ impl MovementAI {
                         } else {
                             Direction::Down
                         }
+                    } else if px < position.tx {
+                        Direction::Left
                     } else {
-                        if px < position.tx {
-                            Direction::Left
-                        } else {
-                            Direction::Right
-                        }
+                        Direction::Right
                     };
                     board.can_move(position, *dir)
                 } else {
@@ -474,7 +472,7 @@ impl Mob {
             position,
             step: None,
             caught: false,
-            speed: speed,
+            speed,
             history: VecDeque::new(),
         }
     }
@@ -484,7 +482,7 @@ impl Mob {
             position,
             step: None,
             caught: false,
-            speed: speed,
+            speed,
             history: VecDeque::new(),
         }
     }
@@ -540,19 +538,17 @@ impl Mob {
                     self.history.push_front(pt);
                 }
                 None
-            } else {
-                if dx.abs() < self.speed && dy.abs() < self.speed {
-                    self.position.x += dx;
-                    self.position.y += dy;
-                    if let Some(pt) = board.get_junction_id(target) {
-                        self.history.push_front(pt);
-                    }
-                    None
-                } else {
-                    self.position.x += self.speed * dx.signum();
-                    self.position.y += self.speed * dy.signum();
-                    Some(target.clone())
+            } else if dx.abs() < self.speed && dy.abs() < self.speed {
+                self.position.x += dx;
+                self.position.y += dy;
+                if let Some(pt) = board.get_junction_id(target) {
+                    self.history.push_front(pt);
                 }
+                None
+            } else {
+                self.position.x += self.speed * dx.signum();
+                self.position.y += self.speed * dy.signum();
+                Some(target.clone())
             }
         } else {
             None
@@ -974,7 +970,7 @@ impl Board {
                 }
             }
         }
-        return true;
+        true
     }
 }
 

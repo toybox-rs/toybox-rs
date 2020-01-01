@@ -1,7 +1,7 @@
+/// A collection of the possible firing protocols
+use crate::types::{SpaceInvaders, StateCore};
 use rand::Rng;
 use schemars::JsonSchema;
-/// A collection of the possible firing protocols
-use types::{SpaceInvaders, StateCore};
 
 /// This enum represents the different enemy AI for firing in Space Invaders.
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]

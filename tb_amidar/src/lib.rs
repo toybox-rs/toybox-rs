@@ -2,8 +2,6 @@ extern crate serde;
 extern crate serde_json;
 extern crate toybox_core;
 #[macro_use]
-extern crate serde_derive;
-#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate schemars;
@@ -13,5 +11,5 @@ pub mod amidar;
 mod digit_sprites;
 mod types;
 
-pub use types::Amidar;
-pub use types::State;
+pub use crate::types::Amidar;
+pub use crate::types::State;

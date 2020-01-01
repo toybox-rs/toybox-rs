@@ -9,7 +9,7 @@ use toybox_core::{AleAction, Input, QueryError};
 
 use serde_json;
 
-use types::*;
+use crate::types::*;
 
 use rand::seq::SliceRandom;
 
