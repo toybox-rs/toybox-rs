@@ -415,7 +415,7 @@ impl StateCore {
             rand: random::Gen::new_child(&mut config.rand),
             life_display_timer: screen::NEW_LIFE_TIME,
             lives: 3,
-            levels_completed: 0,
+            level: 1,
             score: 0,
             ship: Player::new(player_start_x, player_start_y),
             ship_laser: None,
@@ -446,7 +446,7 @@ impl StateCore {
 
         let (x, mut y) = screen::ENEMY_START_POS;
         // start position should get lower with each level
-        y += self.levels_completed * 2;
+        y += self.level * 2;
         let (w, h) = screen::ENEMY_SIZE;
         let x_offset = w + screen::ENEMY_SPACE.0;
         let y_offset = h + screen::ENEMY_SPACE.1;
@@ -917,6 +917,9 @@ impl toybox_core::State for State {
     fn lives(&self) -> i32 {
         self.state.lives
     }
+    fn level(&self) -> i32 {
+        self.state.level
+    }
     fn score(&self) -> i32 {
         self.state.score
     }
@@ -927,7 +930,7 @@ impl toybox_core::State for State {
                 self.state.lives = -1;
                 return;
             } else if self.state.has_won() {
-                self.state.levels_completed += 1;
+                self.state.level += 1;
             }
 
             self.state.reset_board(&self.config);

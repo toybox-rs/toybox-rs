@@ -230,7 +230,7 @@ impl toybox_core::Simulation for Breakout {
                 // paddle starts in middle
                 paddle: self.start_paddle(),
                 score: 0,
-                level: 0,
+                level: 1,
                 ball_radius: 2.0,
                 paddle_width: screen::PADDLE_START_SIZE.0.into(),
                 paddle_speed: 4.0,
@@ -470,6 +470,9 @@ impl State {
 impl toybox_core::State for State {
     fn lives(&self) -> i32 {
         self.state.lives
+    }
+    fn level(&self) -> i32 {
+        self.state.level
     }
     fn score(&self) -> i32 {
         self.state.score

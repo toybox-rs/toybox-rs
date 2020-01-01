@@ -92,7 +92,7 @@ pub struct StateCore {
     pub is_dead: bool,
     /// How many points has the player earned?
     pub score: i32,
-    /// How many levels has the player completed?
+    /// What level is the player on? 1-based.
     pub level: i32,
     /// Ball position describes the center of the ball.
     pub balls: Vec<Body2D>,

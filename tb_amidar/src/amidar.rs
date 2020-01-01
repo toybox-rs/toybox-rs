@@ -133,7 +133,6 @@ impl Default for Amidar {
                     default_route_index: idx as u32,
                 })
                 .collect(),
-            level: 1,
             enemy_starting_speed: inits::ENEMY_STARTING_SPEED,
             player_speed: inits::PLAYER_SPEED,
         }
@@ -387,14 +386,14 @@ impl MovementAI {
                     Direction::Left,
                     Direction::Right,
                 ];
-                let eligible: Vec<(&Direction, Option<TilePoint>)> = directions
-                    .iter()
-                    .map(|d| (d, board.can_move(position, *d)))
-                    .filter(|(_, tp)| tp.is_some())
-                    .collect();
-                let (d, tp) = eligible.choose(rng).cloned().unwrap();
                 let tp_default = board.can_move(position, *dir);
                 if board.is_junction(position) || tp_default.is_none() {
+                    let eligible: Vec<(&Direction, Option<TilePoint>)> = directions
+                        .iter()
+                        .map(|d| (d, board.can_move(position, *d)))
+                        .filter(|(_, tp)| tp.is_some())
+                        .collect();
+                    let (d, tp) = eligible.choose(rng).cloned().unwrap();
                     // Move to the randomly selected tile point, in its dir.
                     *dir = *d;
                     return tp;
@@ -1123,6 +1122,9 @@ impl toybox_core::State for State {
     }
     fn score(&self) -> i32 {
         self.state.score
+    }
+    fn level(&self) -> i32 {
+        self.state.level
     }
     fn update_mut(&mut self, buttons: Input) {
         let pre_update_score: i32 = self.score();

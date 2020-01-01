@@ -263,6 +263,15 @@ pub extern "C" fn state_lives(state_ptr: *mut WrapState) -> i32 {
 }
 
 #[no_mangle]
+pub extern "C" fn state_level(state_ptr: *mut WrapState) -> i32 {
+    let &mut WrapState { ref mut state } = unsafe {
+        assert!(!state_ptr.is_null());
+        &mut *state_ptr
+    };
+    state.level()
+}
+
+#[no_mangle]
 pub extern "C" fn state_score(state_ptr: *mut WrapState) -> i32 {
     let &mut WrapState { ref mut state } = unsafe {
         assert!(!state_ptr.is_null());
