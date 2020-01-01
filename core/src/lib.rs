@@ -39,6 +39,8 @@ pub trait State {
     fn lives(&self) -> i32;
     /// Get the score from the game, i32 allows for negative scores.
     fn score(&self) -> i32;
+    /// Get the level from the game.
+    fn level(&self) -> i32;
     /// To update internally to the next state, we pass buttons to internal logic.
     fn update_mut(&mut self, buttons: Input);
     /// Any state can create a vector of drawable objects to present itself.

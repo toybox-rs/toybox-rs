@@ -198,6 +198,9 @@ class State(object):
     
     def lives(self):
         return lib.state_lives(self.__state)
+    
+    def level(self):
+        return lib.state_level(self.__state)
 
     def score(self):
         return lib.state_score(self.__state)
@@ -322,6 +325,9 @@ class Toybox(object):
     
     def get_lives(self):
         return self.rstate.lives()
+    
+    def get_level(self):
+        return self.rstate.level()
     
     def game_over(self):
         return self.rstate.game_over()

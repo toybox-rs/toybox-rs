@@ -8,6 +8,8 @@ class TestNoCrash(unittest.TestCase):
         with Toybox("amidar") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
+            self.assertEqual(1, tb.get_level())
+            self.assertEqual(0, tb.get_score())
     
     def test_breakout(self):
         config = None
@@ -15,6 +17,8 @@ class TestNoCrash(unittest.TestCase):
         with Toybox("breakout") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
+            self.assertEqual(1, tb.get_level())
+            self.assertEqual(0, tb.get_score())
     
     def test_space_invaders(self):
         config = None
@@ -22,6 +26,8 @@ class TestNoCrash(unittest.TestCase):
         with Toybox("space_invaders") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
+            self.assertEqual(1, tb.get_level())
+            self.assertEqual(0, tb.get_score())
     
     def test_gridworld(self):
         config = None

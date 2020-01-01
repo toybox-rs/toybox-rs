@@ -262,6 +262,9 @@ impl toybox_core::State for State {
             1
         }
     }
+    fn level(&self) -> i32 {
+        0
+    }
     fn score(&self) -> i32 {
         self.frame.score
     }

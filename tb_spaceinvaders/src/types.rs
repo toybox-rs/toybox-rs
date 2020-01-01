@@ -118,8 +118,8 @@ pub struct StateCore {
     pub life_display_timer: i32,
     /// How many lives are remaining?
     pub lives: i32,
-    /// How many levels have been completed?
-    pub levels_completed: i32,
+    /// What is the current level? 1-based.
+    pub level: i32,
     /// How many points have been earned?
     pub score: i32,
     /// Ship is a rectangular actor (logically).
