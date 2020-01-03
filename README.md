@@ -1,9 +1,9 @@
 
-# toybox-rs ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/rustfmt-check/badge.svg) ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/CI/badge.svg)
+#  toybox-rs <img width="40" height="40" alt="Toybox Logo" src="http://toybox.rs/toybox-logo.svg" />
+![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/rustfmt-check/badge.svg) ![RustFmt Badge](https://github.com/toybox-rs/toybox-rs/workflows/CI/badge.svg) 
+
 Rust packages and for Toybox; separately versioned from the main project (i.e., Python API): [toybox-rs/Toybox](https://github.com/toybox-rs/Toybox)
 
-<p align="center"><img width="100" height="100" alt="Toybox Logo" src="http://toybox.rs/toybox-logo.svg" />
-</p>
 
 ## How do I get it? [![PyPI version](https://badge.fury.io/py/ctoybox.svg)](https://badge.fury.io/py/ctoybox)
 
