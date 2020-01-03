@@ -4,6 +4,8 @@ on:
   create:
     tag:
       - 'release-*'
+    branches-ignore:
+      - '*'
   push: 
   schedule:
     # Runs every thursday at 23:23 GMT. This should make sure this syntax and rust dependencies do not rot for too long.
