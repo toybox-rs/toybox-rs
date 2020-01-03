@@ -220,7 +220,7 @@ impl toybox_core::Simulation for Breakout {
             }
         }
 
-        let mut state = State {
+        let state = State {
             config: self.clone(),
             state: StateCore {
                 lives: self.start_lives,
@@ -236,11 +236,10 @@ impl toybox_core::Simulation for Breakout {
                 paddle_speed: 4.0,
                 rand: random::Gen::new_child(&mut self.rand),
                 bricks,
-                reset: true,
+                reset: false,
             },
         };
 
-        state.start_ball();
         Box::new(state)
     }
 
@@ -484,6 +483,9 @@ impl toybox_core::State for State {
 
         if self.state.is_dead {
             if buttons.button1 {
+                // Delete old ball(s).
+                self.state.balls.clear();
+                // New ball.
                 self.start_ball();
                 self.state.is_dead = false;
             }
@@ -660,6 +662,7 @@ impl toybox_core::State for State {
             "num_columns" => serde_json::to_string(&screen::BRICKS_ACROSS)?,
             "num_rows" => serde_json::to_string(&screen::ROW_SCORES.len())?,
             "level" => serde_json::to_string(&state.level)?,
+            "is_dead" => serde_json::to_string(&state.is_dead)?,
             "config.ball_start_positions" => serde_json::to_string(&config.ball_start_positions)?,
             _ => Err(QueryError::NoSuchQuery)?,
         })
