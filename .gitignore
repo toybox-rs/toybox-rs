@@ -6,3 +6,4 @@ venv
 *.pyc
 __pycache__
 *.wheel
+ctoybox/build
