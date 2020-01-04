@@ -33,11 +33,29 @@ class Input():
     _BUTTON2 = "button2"
     _NOOP = "noop"
 
-    def __init__(self):
+    def __init__(self, left=False, right=False, up=False, down=False, button1=False, button2=False):
         """
         The default constructor creates an input object with no buttons pressed.
+
+        :param left: Move left in most games.
+        :param right: Move right in most games.
+        :param up: Move up in most games.
+        :param down: Move down in most games.
+        :param button1: FIRE or ACTION1 or CONFIRM in most games.
+        :param button2: ACTION2 or CANCEL in most games.
         """
-        self.reset()
+        self.left = left
+        """The left button is a directional command to the game from the player."""
+        self.right = right
+        """The right button is a directional command to the game from the player."""
+        self.up = up
+        """The up button is a directional command to the game from the player."""
+        self.down = down
+        """The down button is a directional command to the game from the player."""
+        self.button1 = button1
+        """Confirm, FIRE, or any other action may be associated with button1."""
+        self.button2 = button2
+        """Cancel, or any other action may be associated with button2."""
 
     def reset(self):
         """
