@@ -2,3 +2,4 @@ mkdocs
 mkdocs-jupyter
 mkdocstrings
 matplotlib
+jupyter
