@@ -3,12 +3,14 @@ on:
 
 platform: ubuntu-latest
 
-steps:
+jobs:
   build:
     strategy:
       matrix:
         platform: [ ubuntu-latest, macOS-latest ]
     runs-on: ${{ matrix.platform }}
+
+    steps:
     - name: checkout
       uses: actions/checkout@v1
     - name: doc-install
