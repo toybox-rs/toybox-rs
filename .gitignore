@@ -7,3 +7,4 @@ venv
 __pycache__
 *.wheel
 ctoybox/build
+.ipynb_checkpoints

@@ -1,0 +1,38 @@
+site_name: ctoybox-docs
+site_url: http://toybox.rs/docs/ctoybox
+repo_url: https://github.com/toybox-rs/toybox-rs
+repo_name: toybox-rs/toybox-rs
+
+theme:
+  name: readthedocs
+  custom_dir: docs/custom_theme
+
+nav:
+  - Overview: "index.md"
+  - Python:
+    - Example: "example.ipynb"
+    - class Toybox: "toybox.md"
+    - class Input: "input.md"
+    - class State: "state.md"
+    - class Simulator: "simulator.md"
+  - Rust:
+    - Building New Games: "new-game-help.md"
+
+extra_css:
+  - custom.css
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - mkdocstrings
+  - mkdocs-jupyter

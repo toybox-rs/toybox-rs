@@ -5,7 +5,7 @@ import json
 from .input import Input
 from typing import Dict, Any, List, Union
 
-def rust_str(result):
+def rust_str(result) -> str:
     """
     Make a copy of a rust String and immediately free it!
     """
@@ -17,7 +17,7 @@ def rust_str(result):
         lib.free_str(result)
 
 
-def json_str(js):
+def json_str(js: Union[Dict[str,Any], Input, str]) -> str:
     """
     Turn an object into a JSON string -- handles dictionaries, the Input class, and JSON you've already prepared (e.g., strings).
     """
@@ -34,10 +34,15 @@ class Simulator(object):
     The Simulator is an instance of a game configuration.
     You can call new_game on it to begin.
 
-    :param game_name: one of "breakout", "amidar", etc.
-    :param sim: optionally a Rust pointer to an existing simulator.
     """
     def __init__(self, game_name, sim=None):
+        """
+        Construct a new instance.
+
+        Parameters:
+            game_name: one of "breakout", "amidar", etc.
+            sim: optionally a Rust pointer to an existing simulator.
+        """
         if sim is None:
             sim = lib.simulator_alloc(game_name.encode('utf-8'))
         # sim should be a pointer
@@ -57,9 +62,13 @@ class Simulator(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.__del__()
     
-    def set_seed(self, value: int):
-        """Configure the random number generator that spawns new game states."""
-        lib.simulator_seed(self.__sim, value)
+    def set_seed(self, seed: int):
+        """Configure the random number generator that spawns new game states.
+        
+        Parameters:
+            seed: a parameter to reset the built-in random number generator.
+        """
+        lib.simulator_seed(self.__sim, seed)
 
     def get_frame_width(self) -> int:
         """Get the width in pixels of the frames this game renders."""
@@ -78,7 +87,11 @@ class Simulator(object):
         return State(self)
 
     def state_from_json(self, js: Union[Dict[str, Any], str]) -> 'State':
-        """Generate a State from the state json and this configuration."""
+        """Generate a State from the state json and this configuration.
+        
+        Parameters:
+            js: a JSON object or string containing a serialized state.
+        """
         state = lib.state_from_json(self.get_simulator(), json_str(js).encode('utf-8'))
         return State(self, state=state)
 
@@ -108,13 +121,17 @@ class State(object):
 
     You can rewind in time by storing and restoring these state representations.
 
-    - Access the json: to_json
-    - Access the image: render_frame
-
-    :param sim: The simulator responsible for this state.
-    :param state: Optional pointer to a state to use (otherwise it will create one), default=None 
+    - Access the json: ``to_json``
+    - Access the image: ``render_frame``
     """
     def __init__(self, sim: Simulator, state=None):
+        """
+        Construct a new State instance wrapper.
+
+        Parameters:
+            sim: The simulator responsible for this state.
+            state: Optional pointer to a state to use (otherwise it will create one). 
+        """
         self.__state = state or lib.state_alloc(sim.get_simulator())
         self.game_name = sim.game_name
         self.deleted = False
@@ -159,13 +176,20 @@ class State(object):
         """
         Ask a question of the Rust state; queries are currently implemented manually.
 
-        :param query: the message to send to the rust state.
-        :param args: the arguments to send to the rust state, defaults to "null".
-        :raises ValueError: if anything goes wrong with the query
+        Parameters:
+            query: the message to send to the rust state.
+            args: the arguments to send to the rust state, defaults to "null".
 
-        >>> with Toybox("breakout") as tb:
-        >>>   tb.query_json("bricks_remaining")
-        81
+        Returns:
+            response: A JSON response loaded to python objects.
+
+        Raises:
+            ValueError: if anything goes wrong with the query
+
+        ```python
+        with Toybox("breakout") as tb:
+          tb.query_json("bricks_remaining")
+        ```
         """
         txt = rust_str(lib.state_query_json(self.__state, json_str(query).encode('utf-8'), json_str(args).encode('utf-8')))
         try:
@@ -174,11 +198,12 @@ class State(object):
             raise ValueError(txt)
         return out
 
-    def render_frame(self, sim: Simulator, grayscale=True) -> np.array:
+    def render_frame(self, sim: Simulator, grayscale: bool =True) -> np.array:
         """Generate an image from the current frame state object.
 
-        :param sim: the simulator to use; this tells us the width/height necessary.
-        :param grayscale: True if we want to render in grayscale rather than in color (RGBA).
+        Parameters:
+            sim: the simulator to use; this tells us the width/height necessary.
+            grayscale: True if we want to render in grayscale rather than in color (RGBA).
         """
         if grayscale:
             return self.render_frame_grayscale(sim)
@@ -188,7 +213,8 @@ class State(object):
     def render_frame_color(self, sim: Simulator) -> np.array:
         """Generate an RGBA image from the current frame state object.
 
-        :param sim: the simulator to use; this tells us the width/height necessary.
+        Parameters:
+            sim: the simulator to use; this tells us the width/height necessary.
         """
         h = sim.get_frame_height()
         w = sim.get_frame_width()
@@ -202,7 +228,8 @@ class State(object):
     def render_frame_rgb(self, sim: Simulator) -> np.array:
         """Generate an RGB image from the current frame state object.
 
-        :param sim: the simulator to use; this tells us the width/height necessary.
+        Parameters:
+            sim: the simulator to use; this tells us the width/height necessary.
         """
         rgba_frame = self.render_frame_color(sim)
         return rgba_frame[:,:,:3]
@@ -210,7 +237,8 @@ class State(object):
     def render_frame_grayscale(self, sim: Simulator) -> np.array:
         """Generate a grayscale image from the current frame state object.
 
-        :param sim: the simulator to use; this tells us the width/height necessary.
+        Parameters:
+            sim: the simulator to use; this tells us the width/height necessary.
         """
         h = sim.get_frame_height()
         w = sim.get_frame_width()
@@ -227,17 +255,27 @@ class State(object):
 
 class Toybox(object):
     """
-    This is a stateful representation of Toybox -- since it manages memory, we provide __enter__ and __exit__ usage for Python's with-blocks:
+    This is a stateful representation of Toybox -- since it manages memory, we provide ``__enter__`` and ``__exit__`` usage for Python's with-blocks:
+    
+    ```python
+    with Toybox("amidar") as tb:
+        print(tb.get_score())
+    # the 'tb' variable only lives in the block.
+    ```
 
-    :param game_name: One of "breakout", "space_invaders", "amidar", etc.
-    :param grayscale: Toybox can render directly to grayscale, saving time, default=True.
-    :param frameskip: When an action is submitted, for how many extra frames should it be applied? default=True
+    Important:
+        Note how we should use this in a with-block; this will clean up pointers and prevent memory leaks.
 
-    >>> with Toybox("amidar") as tb:
-          print(tb.get_score())
-    >>> # the 'tb' variable only lives in the block.
     """
     def __init__(self, game_name: str, grayscale: bool=True, frameskip: int=0):
+        """
+        Construct a new Toybox state/game wrapper. Use this in a with block!
+
+        Parameters:
+            game_name: One of "breakout", "space_invaders", "amidar", etc.
+            grayscale: Toybox can render directly to grayscale, saving time.
+            frameskip: When an action is submitted, for how many extra frames should it be applied?
+        """
         self.game_name = game_name
         self.frames_per_action = frameskip+1
         self.rsimulator = Simulator(game_name)
@@ -247,7 +285,12 @@ class Toybox(object):
         self.new_game()
 
     def new_game(self):
-        """Modify this Toybox wrapper to have a new_game state."""
+        """
+        Modify this Toybox wrapper to have a new_game state.
+
+        Important:
+            This discards the old state!
+        """
         old_state = self.rstate
         del old_state
         self.rstate = self.rsimulator.new_game()
@@ -272,8 +315,34 @@ class Toybox(object):
 
     def apply_ale_action(self, action_int: int):
         """Takes an integer corresponding to an action, as specified in ALE.
+    
+        This applies the action *k* times, where *k* based on the frameskip passed to the Toybox constructor.
+    
+        ```python
+        ALE_INPUT_MAPPING = {
+            0 : "NOOP",
+            1 : "FIRE",
+            2 : "UP",
+            3 : "RIGHT",
+            4 : "LEFT",
+            5 : "DOWN",
+            6 : "UPRIGHT",
+            7 : "UPLEFT",
+            8 : "DOWNRIGHT",
+            9 : "DOWNLEFT",
+            10 : "UPFIRE",
+            11 : "RIGHTFIRE",
+            12 : "LEFTFIRE",
+            13 : "DOWNFIRE",
+            14 : "UPRIGHTFIRE",
+            15 : "UPLEFTFIRE",
+            16 : "DOWNRIGHTFIRE",
+            17 : "DOWNLEFTFIRE"
+        }
+        ```
 
-        This applies the action k times, where k based on the frameskip passed to the Toybox constructor.
+        Parameters:
+            action_int: A number from 0 to 17 inclusive.
         """      
         # implement frameskip(k) by sending the action (k+1) times every time we have an action.
         for _ in range(self.frames_per_action):
@@ -281,9 +350,12 @@ class Toybox(object):
                 raise ValueError("Expected to apply action, but failed: {0}".format(action_int))
 
     def apply_action(self, action_input_obj: Input):
-        """Takes an Input action and applies it - unlike the ALE actions (which allow some permutations) this allows for fine-grained button pressing.
+        """Takes an [ctoybox.Input][] action and applies it - unlike the ALE actions (which allow some permutations) this allows for fine-grained button pressing.
 
-        This applies the action k times, where k based on the frameskip passed to the Toybox constructor.
+        This applies the action *k* times, where *k* based on the frameskip passed to the Toybox constructor.
+        
+        Parameters:
+            action_input_obj: An instance of the [ctoybox.Input][] class.
         """
         # implement frameskip(k) by sending the action (k+1) times every time we have an action.
         js = json_str(action_input_obj).encode('UTF-8')
@@ -296,14 +368,19 @@ class Toybox(object):
         return self.rstate.render_frame(self.rsimulator, self.grayscale)
     
     def set_seed(self, seed: int):
-        """Control the random number generator of the config -- only affects a new_game"""
+        """Control the random number generator of the config -- only affects a new_game.
+        
+        Parameters:
+            seed: a parameter to reset the built-in random number generator.
+        """
         self.rsimulator.set_seed(seed)
 
-    def save_frame_image(self, path: str, grayscale=False):
+    def save_frame_image(self, path: str, grayscale: bool =False):
         """Save the current frame image to a PNG file.
         
-        :param path: the filename to save to.
-        :param grayscale: whether images should be saved in color or black & white, default=False.
+        Parameters:
+            path: the filename to save to.
+            grayscale: whether images should be saved in color or black & white.
         """
         img = None
         if grayscale:
@@ -317,19 +394,34 @@ class Toybox(object):
         return self.rstate.render_frame_rgb(self.rsimulator)
 
     def get_score(self) -> int:
-        """Get the number of points earned in the current state."""
+        """Access the current score.
+
+        Returns:
+            The number of points earned in the current state."""
         return self.rstate.score()
     
     def get_lives(self) -> int:
-        """Get the number of lives remaining in the current state."""
+        """Access the number of lives.
+
+        Returns:
+            The number of lives remaining in the current state."""
         return self.rstate.lives()
     
     def get_level(self) -> int:
-        """Get the number of levels completed in the current state."""
+        """
+        Access the number of levels.
+        
+        Returns:
+            The number of levels completed in the current state."""
         return self.rstate.level()
     
     def game_over(self) -> bool:
-        """Return true if the player has run out of lives in the current state."""
+        """
+        Check for game over condition.
+
+        Returns:
+            ``True`` if the player has run out of lives in the current state.
+        """
         return self.rstate.game_over()
 
     def state_to_json(self) -> Dict[str, Any]:
@@ -337,8 +429,12 @@ class Toybox(object):
         return self.rstate.to_json()
 
     def to_state_json(self) -> Dict[str, Any]:
-        """Get the state's JSON representation as a python dict."""
-        return self.rstate.to_json()
+        """Get the state's JSON representation as a python dict.
+        
+        Important:
+            This method is deprecated; please use ``state_to_json`` instead!
+        """
+        return self.state_to_json()
 
     def config_to_json(self) -> Dict[str, Any]:
         """Get the state's JSON representation as a python dict."""
@@ -347,7 +443,8 @@ class Toybox(object):
     def write_state_json(self, js: Dict[str, Any]):
         """Overwrite the state's JSON representation from a python dict.
         
-        :param js: the python representation of the JSON state.
+        Parameters:
+            js: the python representation of the JSON state.
         """
         old_state = self.rstate
         del old_state
@@ -358,7 +455,8 @@ class Toybox(object):
         
         It is likely that some changes will be seen until you call new_game()
 
-        :param config_js: the python representation of the config JSON
+        Parameters:
+            config_js: the python representation of the config JSON
         """
         # from_json replaces simulator!
         self.rsimulator.from_json(config_js)
@@ -368,8 +466,9 @@ class Toybox(object):
     def query_state_json(self, query: str, args: Union[Dict[str, Any], str]="null") -> Dict[str, Any]: 
         """Submit a query to the game's query system -- faster than accessing the whole JSON for quick introspection.
 
-        :param query: the query string to send to the game.
-        :param args: a JSON argument to attach to the query string, default="null".
+        Parameters:
+            query: the query string to send to the game.
+            args: a JSON argument to attach to the query string.
         """
         return self.rstate.query_json(query, args)
 

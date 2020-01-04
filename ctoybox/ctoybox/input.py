@@ -1,27 +1,9 @@
 
 class Input():
-    """An input object represents a game controller having left, right, up, down, and two buttons.
+    """
+    An input object represents a game controller having left, right, up, down, and two buttons.
     
-    ALE mapping:
-
-     - 0 : "NOOP"
-     - 1 : "FIRE"
-     - 2 : "UP"
-     - 3 : "RIGHT"
-     - 4 : "LEFT"
-     - 5 : "DOWN"
-     - 6 : "UPRIGHT"
-     - 7 : "UPLEFT"
-     - 8 : "DOWNRIGHT"
-     - 9 : "DOWNLEFT"
-     - 10 : "UPFIRE"
-     - 11 : "RIGHTFIRE"
-     - 12 : "LEFTFIRE"
-     - 13 : "DOWNFIRE"
-     - 14 : "UPRIGHTFIRE"
-     - 15 : "UPLEFTFIRE"
-     - 16 : "DOWNRIGHTFIRE"
-     - 17 : "DOWNLEFTFIRE"
+    
     
     """
 
@@ -33,16 +15,17 @@ class Input():
     _BUTTON2 = "button2"
     _NOOP = "noop"
 
-    def __init__(self, left=False, right=False, up=False, down=False, button1=False, button2=False):
+    def __init__(self, left: bool=False, right: bool=False, up: bool=False, down: bool=False, button1: bool=False, button2: bool=False):
         """
         The default constructor creates an input object with no buttons pressed.
-
-        :param left: Move left in most games.
-        :param right: Move right in most games.
-        :param up: Move up in most games.
-        :param down: Move down in most games.
-        :param button1: FIRE or ACTION1 or CONFIRM in most games.
-        :param button2: ACTION2 or CANCEL in most games.
+        
+        Arguments:
+            left: Move left in most games.
+            right: Move right in most games.
+            up: Move up in most games.
+            down: Move down in most games.
+            button1: FIRE or ACTION1 or CONFIRM in most games.
+            button2: ACTION2 or CANCEL in most games.
         """
         self.left = left
         """The left button is a directional command to the game from the player."""
