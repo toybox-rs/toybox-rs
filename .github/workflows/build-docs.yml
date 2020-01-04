@@ -12,15 +12,15 @@ jobs:
     - name: checkout
       uses: actions/checkout@v1
     - name: doc-install
-      if: ${{matrix.platform}} == 'ubuntu-latest'
+      if: "${{matrix.platform}} == 'ubuntu-latest'"
       run: |
         pip install -U ctoybox
         pip install -r doc-requirements.txt
     - name: mkdocs
-      if: ${{matrix.platform}} == 'ubuntu-latest'
+      if: "${{matrix.platform}} == 'ubuntu-latest'"
       run: mkdocs build
     - name: upload-docs
-      if: ${{matrix.platform}} == 'ubuntu-latest'
+      if: "${{matrix.platform}} == 'ubuntu-latest'"
       uses: actions/upload-artifact@v1
       with:
         name: docs
