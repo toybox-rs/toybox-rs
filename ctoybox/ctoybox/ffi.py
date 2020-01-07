@@ -278,8 +278,10 @@ class State(object):
         size = h * w * rgba
         frame = np.zeros(size, dtype="uint8")
         frame_ptr = ffi.cast("uint8_t *", frame.ctypes.data)
-        lib.render_current_frame(
-            frame_ptr, size, False, sim.get_simulator(), self.__state
+        _handle_ffi_result(
+            lib.render_current_frame(
+                frame_ptr, size, False, sim.get_simulator(), self.__state
+            )
         )
         return np.reshape(frame, (h, w, rgba))
 

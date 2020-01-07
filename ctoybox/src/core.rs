@@ -85,17 +85,13 @@ pub extern "C" fn simulator_actions(ptr: *mut WrapSimulator) -> *const c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn simulator_schema_for_state(ptr: *mut WrapSimulator) -> *const c_char {
-    let schema_str = get_simulator(ptr).schema_for_state();
-    let cjson: CString = CString::new(schema_str).expect("Conversion to CString should succeed!");
-    CString::into_raw(cjson)
+pub extern "C" fn simulator_schema_for_state(ptr: *mut WrapSimulator) -> *const c_void {
+    return_string(&get_simulator(ptr).schema_for_state())
 }
 
 #[no_mangle]
-pub extern "C" fn simulator_schema_for_config(ptr: *mut WrapSimulator) -> *const c_char {
-    let schema_str = get_simulator(ptr).schema_for_config();
-    let cjson: CString = CString::new(schema_str).expect("Conversion to CString should succeed!");
-    CString::into_raw(cjson)
+pub extern "C" fn simulator_schema_for_config(ptr: *mut WrapSimulator) -> *const c_void {
+    return_string(&get_simulator(ptr).schema_for_config())
 }
 
 // STATE ALLOC + FREE
