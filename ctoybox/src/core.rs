@@ -9,7 +9,7 @@ use std::ffi::CString;
 use std::mem;
 use toybox;
 use toybox_core::graphics::{GrayscaleBuffer, ImageBuffer};
-use toybox_core::{AleAction, Input, State};
+use toybox_core::{AleAction, Input};
 
 fn get_simulator(ptr: *mut WrapSimulator) -> &'static mut dyn toybox::Simulation {
     assert!(!ptr.is_null());
@@ -97,8 +97,16 @@ pub extern "C" fn simulator_schema_for_config(ptr: *mut WrapSimulator) -> *const
 // STATE ALLOC + FREE
 #[no_mangle]
 pub extern "C" fn state_alloc(ptr: *mut WrapSimulator) -> *mut WrapState {
-    let state: Box<dyn State> = get_simulator(ptr).new_game();
-    let boxed_wrapped_state: Box<WrapState> = Box::new(WrapState { state });
+    let state = get_simulator(ptr).new_game();
+    let boxed_wrapped_state = Box::new(WrapState { state });
+    Box::into_raw(boxed_wrapped_state)
+}
+
+#[no_mangle]
+pub extern "C" fn state_clone(ptr: *mut WrapState) -> *mut WrapState {
+    let boxed_wrapped_state = Box::new(WrapState {
+        state: get_state(ptr).copy(),
+    });
     Box::into_raw(boxed_wrapped_state)
 }
 

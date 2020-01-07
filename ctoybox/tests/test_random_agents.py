@@ -5,10 +5,13 @@ import numpy as np
 
 def _exec_actions_max_score(actions, tb):
     score = 0
+    states = []
     for act in actions:
+        states.append(tb.rstate.clone())
+        # states.append(tb.state_to_json())
         tb.apply_ale_action(act)
         if tb.get_score() > score:
-            score = tb.score()
+            score = tb.get_score()
         if tb.game_over():
             break
     return score
@@ -17,8 +20,8 @@ def _exec_actions_max_score(actions, tb):
 class TestRandomAgents(unittest.TestCase):
     def _1000_random_actions_are_deterministic(self, tb):
         # get 1000 random actions:
-        actions = tb.get_legal_action_set()
-        np.random.choice(actions, size=1000)
+        action_set = tb.get_legal_action_set()
+        actions = np.random.choice(action_set, size=1000)
         # save start state:
         state = tb.state_to_json()
 

@@ -182,9 +182,14 @@ class State(object):
             sim: The simulator responsible for this state.
             state: Optional pointer to a state to use (otherwise it will create one). 
         """
+        self.sim = sim
+        """A reference to the simulator that created this state."""
         self.__state = state or lib.state_alloc(sim.get_simulator())
+        """The raw pointer to the state itself."""
         self.game_name = sim.game_name
+        """The name of the game that created this state."""
         self.deleted = False
+        """An internal field used to prevent freeing the ``__state`` multiple times."""
 
     def __enter__(self):
         return self
@@ -197,6 +202,10 @@ class State(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.__del__()
+
+    def clone(self) -> 'State':
+        """Quickly make a copy of this state; should be more efficient than saving the JSON."""
+        return State(self.sim, state=lib.state_clone(self.get_state()))
 
     def get_state(self):
         """Get the raw state pointer."""

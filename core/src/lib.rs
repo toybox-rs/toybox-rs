@@ -58,6 +58,8 @@ pub trait State {
     fn draw(&self) -> Vec<graphics::Drawable>;
     /// Any state can serialize to JSON String.
     fn to_json(&self) -> String;
+    /// Copy this state to save it for later.
+    fn copy(&self) -> Box<dyn State>;
     /// Submit a query to this state object, returning a JSON String or error message.
     fn query_json(&self, query: &str, args: &serde_json::Value) -> Result<String, QueryError>;
 }

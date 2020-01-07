@@ -227,6 +227,7 @@ pub struct StateCore {
 }
 
 /// Wrapping the current game config into one struct with the current frame state.
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct State {
     /// The config that generated the original state for this game.
     pub config: Amidar,
