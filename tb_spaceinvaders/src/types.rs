@@ -142,7 +142,7 @@ pub struct StateCore {
 }
 
 /// The unified state of SpaceInvaders contains both the config (read-only) and the frame state.
-#[derive(Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct State {
     /// Constant configuration available to game logic.
     pub config: SpaceInvaders,

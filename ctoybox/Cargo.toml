@@ -16,6 +16,7 @@ crate-type = ["cdylib"]
 libc = "0.2"
 serde = "1"
 serde_json = "1"
+serde_derive = "1"
 amidar = {path = "../tb_amidar", version="*"}
 breakout = {path = "../tb_breakout", version="*"}
 toybox = {path = "../toybox", version="*"}

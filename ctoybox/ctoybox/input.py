@@ -1,10 +1,6 @@
-
-class Input():
+class Input:
     """
     An input object represents a game controller having left, right, up, down, and two buttons.
-    
-    
-    
     """
 
     _LEFT = "left"
@@ -15,7 +11,15 @@ class Input():
     _BUTTON2 = "button2"
     _NOOP = "noop"
 
-    def __init__(self, left: bool=False, right: bool=False, up: bool=False, down: bool=False, button1: bool=False, button2: bool=False):
+    def __init__(
+        self,
+        left: bool = False,
+        right: bool = False,
+        up: bool = False,
+        down: bool = False,
+        button1: bool = False,
+        button2: bool = False,
+    ):
         """
         The default constructor creates an input object with no buttons pressed.
         
@@ -71,7 +75,7 @@ class Input():
         button = button.lower()
 
         # reset all directions
-        if   input_dir == Input._NOOP:
+        if input_dir == Input._NOOP:
             pass
         elif input_dir == Input._LEFT:
             self.left = True
@@ -82,7 +86,7 @@ class Input():
         elif input_dir == Input._DOWN:
             self.down = True
         else:
-            print('input_dir:', input_dir)
+            print("input_dir:", input_dir)
             assert False
 
         # reset buttons
