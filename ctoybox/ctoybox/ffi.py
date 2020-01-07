@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import json
 from .input import Input
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 
 def rust_str(result) -> str:
     """
@@ -14,7 +14,43 @@ def rust_str(result) -> str:
         txt = ffi.string(txt).decode('UTF-8')
         return txt
     finally:
-        lib.free_str(result)
+        assert(lib.free_str(result))
+
+def _raise_error_str(rust_error_string: Optional[str]):
+    if rust_error_string is None:
+        return
+    if "{" in rust_error_string:
+        response = json.loads(rust_error_string)
+        if "error" in response and "context" in response:
+            raise ValueError("{0}: {1}".format(response["error"], response["context"]))
+    else:
+        raise ValueError(rust_error_string)
+
+def _handle_ffi_result(ffi_result):
+    """
+    This handles the logical-OR struct of the FFIResult { error_message, success } 
+    where both the wrapper and the error_message will be freed by the end of this function.
+
+    The success pointer is returned or an error is raised!
+    """
+    if ffi_result == ffi.NULL:
+        raise ValueError("FFIResult should not be NULL")
+
+    error = None
+    success = None
+    if ffi_result.error_message != ffi.NULL:
+        error = rust_str(ffi_result.error_message)
+    if ffi_result.success != ffi.NULL:
+        success = ffi_result.success
+    lib.free_ffi_result(ffi_result)
+    
+    # maybe crash here!
+    if error is not None:
+        _raise_error_str(error)
+        return None
+
+    # return the success pointer otherwise!
+    return success
 
 
 def json_str(js: Union[Dict[str,Any], Input, str]) -> str:
@@ -44,7 +80,7 @@ class Simulator(object):
             sim: optionally a Rust pointer to an existing simulator.
         """
         if sim is None:
-            sim = lib.simulator_alloc(game_name.encode('utf-8'))
+            sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode('utf-8')))
         # sim should be a pointer
         self.game_name = game_name
         self.__sim = sim 
@@ -92,7 +128,8 @@ class Simulator(object):
         Parameters:
             js: a JSON object or string containing a serialized state.
         """
-        state = lib.state_from_json(self.get_simulator(), json_str(js).encode('utf-8'))
+        state = _handle_ffi_result(
+            lib.state_from_json(self.get_simulator(), json_str(js).encode('utf-8')))
         return State(self, state=state)
 
     def to_json(self) -> Dict[str, Any]:
@@ -103,7 +140,8 @@ class Simulator(object):
     def from_json(self, config_js: Union[Dict[str, Any], str]):
         """Mutably update this simulator/config with the replacement json."""
         old_sim = self.__sim
-        self.__sim = lib.simulator_from_json(self.get_simulator(), json_str(config_js).encode('utf-8'))
+        self.__sim = _handle_ffi_result(
+            lib.simulator_from_json(self.get_simulator(), json_str(config_js).encode('utf-8')))
         del old_sim
     
     def schema_for_state(self) -> Dict[str, Any]:
@@ -191,12 +229,12 @@ class State(object):
           tb.query_json("bricks_remaining")
         ```
         """
-        txt = rust_str(lib.state_query_json(self.__state, json_str(query).encode('utf-8'), json_str(args).encode('utf-8')))
-        try:
-            out = json.loads(txt)
-        except:
-            raise ValueError(txt)
-        return out
+        txt = rust_str(
+            _handle_ffi_result(
+                lib.state_query_json(
+                    self.__state, json_str(query).encode('utf-8'), 
+                    json_str(args).encode('utf-8'))))
+        return json.loads(txt)
 
     def render_frame(self, sim: Simulator, grayscale: bool =True) -> np.array:
         """Generate an image from the current frame state object.
@@ -361,7 +399,7 @@ class Toybox(object):
         js = json_str(action_input_obj).encode('UTF-8')
         js_cstr = ffi.new("char []", js)
         for _ in range(self.frames_per_action):
-            lib.state_apply_action(self.rstate.get_state(), js_cstr)
+            _handle_ffi_result(lib.state_apply_action(self.rstate.get_state(), js_cstr))
     
     def get_state(self) -> np.array:
         """This state here actually refers to the graphical, RGBA or grayscale representation of the current state."""

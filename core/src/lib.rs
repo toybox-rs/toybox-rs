@@ -19,6 +19,9 @@ pub use crate::direction::Direction;
 
 extern crate rand_core;
 
+use std::error::Error;
+use std::fmt;
+
 /// This enum defines failure conditions for a query_json call.
 #[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum QueryError {
@@ -32,6 +35,14 @@ impl From<serde_json::Error> for QueryError {
         QueryError::InternalSerializationError(format!("{}", e))
     }
 }
+
+impl fmt::Display for QueryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl Error for QueryError {}
 
 /// This trait models a single frame state for a Simulation.
 pub trait State {

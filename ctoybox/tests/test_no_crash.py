@@ -17,6 +17,7 @@ class TestNoCrash(unittest.TestCase):
         with Toybox("breakout") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
+            self.assertEqual(108, tb.query_state_json('bricks_remaining'))
             self.assertEqual(1, tb.get_level())
             self.assertEqual(0, tb.get_score())
     
