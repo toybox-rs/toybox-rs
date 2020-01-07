@@ -1,6 +1,6 @@
 target
 Cargo.lock
-venv
+*venv
 .vscode
 *~
 *.pyc

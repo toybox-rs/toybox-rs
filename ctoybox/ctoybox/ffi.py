@@ -5,16 +5,18 @@ import json
 from .input import Input
 from typing import Dict, Any, List, Union, Optional
 
+
 def rust_str(result) -> str:
     """
     Make a copy of a rust String and immediately free it!
     """
     try:
         txt = ffi.cast("char *", result)
-        txt = ffi.string(txt).decode('UTF-8')
+        txt = ffi.string(txt).decode("UTF-8")
         return txt
     finally:
-        assert(lib.free_str(result))
+        assert lib.free_str(result)
+
 
 def _raise_error_str(rust_error_string: Optional[str]):
     if rust_error_string is None:
@@ -25,6 +27,7 @@ def _raise_error_str(rust_error_string: Optional[str]):
             raise ValueError("{0}: {1}".format(response["error"], response["context"]))
     else:
         raise ValueError(rust_error_string)
+
 
 def _handle_ffi_result(ffi_result):
     """
@@ -43,7 +46,7 @@ def _handle_ffi_result(ffi_result):
     if ffi_result.success != ffi.NULL:
         success = ffi_result.success
     lib.free_ffi_result(ffi_result)
-    
+
     # maybe crash here!
     if error is not None:
         _raise_error_str(error)
@@ -53,7 +56,7 @@ def _handle_ffi_result(ffi_result):
     return success
 
 
-def json_str(js: Union[Dict[str,Any], Input, str]) -> str:
+def json_str(js: Union[Dict[str, Any], Input, str]) -> str:
     """
     Turn an object into a JSON string -- handles dictionaries, the Input class, and JSON you've already prepared (e.g., strings).
     """
@@ -62,8 +65,11 @@ def json_str(js: Union[Dict[str,Any], Input, str]) -> str:
     elif type(js) is Input:
         js = json.dumps(js.__dict__)
     elif type(js) is not str:
-        raise ValueError('Unknown json type: %s (only str and dict supported)' % type(js))
+        raise ValueError(
+            "Unknown json type: %s (only str and dict supported)" % type(js)
+        )
     return js
+
 
 class Simulator(object):
     """
@@ -71,6 +77,7 @@ class Simulator(object):
     You can call new_game on it to begin.
 
     """
+
     def __init__(self, game_name, sim=None):
         """
         Construct a new instance.
@@ -80,10 +87,10 @@ class Simulator(object):
             sim: optionally a Rust pointer to an existing simulator.
         """
         if sim is None:
-            sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode('utf-8')))
+            sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode("utf-8")))
         # sim should be a pointer
         self.game_name = game_name
-        self.__sim = sim 
+        self.__sim = sim
         self.deleted = False
 
     def __del__(self):
@@ -94,10 +101,10 @@ class Simulator(object):
 
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.__del__()
-    
+
     def set_seed(self, seed: int):
         """Configure the random number generator that spawns new game states.
         
@@ -118,18 +125,19 @@ class Simulator(object):
         """Get access to the raw simulator pointer."""
         return self.__sim
 
-    def new_game(self) -> 'State':
+    def new_game(self) -> "State":
         """Start a new game."""
         return State(self)
 
-    def state_from_json(self, js: Union[Dict[str, Any], str]) -> 'State':
+    def state_from_json(self, js: Union[Dict[str, Any], str]) -> "State":
         """Generate a State from the state json and this configuration.
         
         Parameters:
             js: a JSON object or string containing a serialized state.
         """
         state = _handle_ffi_result(
-            lib.state_from_json(self.get_simulator(), json_str(js).encode('utf-8')))
+            lib.state_from_json(self.get_simulator(), json_str(js).encode("utf-8"))
+        )
         return State(self, state=state)
 
     def to_json(self) -> Dict[str, Any]:
@@ -141,13 +149,16 @@ class Simulator(object):
         """Mutably update this simulator/config with the replacement json."""
         old_sim = self.__sim
         self.__sim = _handle_ffi_result(
-            lib.simulator_from_json(self.get_simulator(), json_str(config_js).encode('utf-8')))
+            lib.simulator_from_json(
+                self.get_simulator(), json_str(config_js).encode("utf-8")
+            )
+        )
         del old_sim
-    
+
     def schema_for_state(self) -> Dict[str, Any]:
         """Get the JSON Schema for any state for this game."""
         return json.loads(rust_str(lib.simulator_schema_for_state(self.__sim)))
-    
+
     def schema_for_config(self):
         """Get the JSON Schema for any config for this game."""
         return json.loads(rust_str(lib.simulator_schema_for_config(self.__sim)))
@@ -162,6 +173,7 @@ class State(object):
     - Access the json: ``to_json``
     - Access the image: ``render_frame``
     """
+
     def __init__(self, sim: Simulator, state=None):
         """
         Construct a new State instance wrapper.
@@ -188,13 +200,13 @@ class State(object):
 
     def get_state(self):
         """Get the raw state pointer."""
-        assert(self.__state is not None)
+        assert self.__state is not None
         return self.__state
-    
+
     def lives(self) -> int:
         """How many lives are remaining in the current state?"""
         return lib.state_lives(self.__state)
-    
+
     def level(self) -> int:
         """How many levels have been completed in the current state?"""
         return lib.state_level(self.__state)
@@ -210,7 +222,9 @@ class State(object):
         """
         return self.lives() < 0
 
-    def query_json(self, query: str, args: Union[Dict[str, Any], str]="null") -> Dict[str, Any]:
+    def query_json(
+        self, query: str, args: Union[Dict[str, Any], str] = "null"
+    ) -> Dict[str, Any]:
         """
         Ask a question of the Rust state; queries are currently implemented manually.
 
@@ -232,11 +246,15 @@ class State(object):
         txt = rust_str(
             _handle_ffi_result(
                 lib.state_query_json(
-                    self.__state, json_str(query).encode('utf-8'), 
-                    json_str(args).encode('utf-8'))))
+                    self.__state,
+                    json_str(query).encode("utf-8"),
+                    json_str(args).encode("utf-8"),
+                )
+            )
+        )
         return json.loads(txt)
 
-    def render_frame(self, sim: Simulator, grayscale: bool =True) -> np.array:
+    def render_frame(self, sim: Simulator, grayscale: bool = True) -> np.array:
         """Generate an image from the current frame state object.
 
         Parameters:
@@ -257,11 +275,13 @@ class State(object):
         h = sim.get_frame_height()
         w = sim.get_frame_width()
         rgba = 4
-        size = h * w  * rgba
-        frame = np.zeros(size, dtype='uint8')
+        size = h * w * rgba
+        frame = np.zeros(size, dtype="uint8")
         frame_ptr = ffi.cast("uint8_t *", frame.ctypes.data)
-        lib.render_current_frame(frame_ptr, size, False, sim.get_simulator(), self.__state)
-        return np.reshape(frame, (h,w,rgba))
+        lib.render_current_frame(
+            frame_ptr, size, False, sim.get_simulator(), self.__state
+        )
+        return np.reshape(frame, (h, w, rgba))
 
     def render_frame_rgb(self, sim: Simulator) -> np.array:
         """Generate an RGB image from the current frame state object.
@@ -270,8 +290,8 @@ class State(object):
             sim: the simulator to use; this tells us the width/height necessary.
         """
         rgba_frame = self.render_frame_color(sim)
-        return rgba_frame[:,:,:3]
-    
+        return rgba_frame[:, :, :3]
+
     def render_frame_grayscale(self, sim: Simulator) -> np.array:
         """Generate a grayscale image from the current frame state object.
 
@@ -280,16 +300,19 @@ class State(object):
         """
         h = sim.get_frame_height()
         w = sim.get_frame_width()
-        size = h * w 
-        frame = np.zeros(size, dtype='uint8')
+        size = h * w
+        frame = np.zeros(size, dtype="uint8")
         frame_ptr = ffi.cast("uint8_t *", frame.ctypes.data)
-        lib.render_current_frame(frame_ptr, size, True, sim.get_simulator(), self.__state)
-        return np.reshape(frame, (h,w,1))
+        lib.render_current_frame(
+            frame_ptr, size, True, sim.get_simulator(), self.__state
+        )
+        return np.reshape(frame, (h, w, 1))
 
     def to_json(self) -> Dict[str, Any]:
         """Get a JSON representation of the state."""
         json_str = rust_str(lib.state_to_json(self.__state))
         return json.loads(str(json_str))
+
 
 class Toybox(object):
     """
@@ -305,7 +328,8 @@ class Toybox(object):
         Note how we should use this in a with-block; this will clean up pointers and prevent memory leaks.
 
     """
-    def __init__(self, game_name: str, grayscale: bool=True, frameskip: int=0):
+
+    def __init__(self, game_name: str, grayscale: bool = True, frameskip: int = 0):
         """
         Construct a new Toybox state/game wrapper. Use this in a with block!
 
@@ -315,7 +339,7 @@ class Toybox(object):
             frameskip: When an action is submitted, for how many extra frames should it be applied?
         """
         self.game_name = game_name
-        self.frames_per_action = frameskip+1
+        self.frames_per_action = frameskip + 1
         self.rsimulator = Simulator(game_name)
         self.rstate = self.rsimulator.new_game()
         self.grayscale = grayscale
@@ -332,7 +356,7 @@ class Toybox(object):
         old_state = self.rstate
         del old_state
         self.rstate = self.rsimulator.new_game()
-        
+
     def get_height(self) -> int:
         """Get the height of the rendered game in pixels."""
         return self.rsimulator.get_frame_height()
@@ -381,11 +405,13 @@ class Toybox(object):
 
         Parameters:
             action_int: A number from 0 to 17 inclusive.
-        """      
+        """
         # implement frameskip(k) by sending the action (k+1) times every time we have an action.
         for _ in range(self.frames_per_action):
             if not lib.state_apply_ale_action(self.rstate.get_state(), action_int):
-                raise ValueError("Expected to apply action, but failed: {0}".format(action_int))
+                raise ValueError(
+                    "Expected to apply action, but failed: {0}".format(action_int)
+                )
 
     def apply_action(self, action_input_obj: Input):
         """Takes an [ctoybox.Input][] action and applies it - unlike the ALE actions (which allow some permutations) this allows for fine-grained button pressing.
@@ -396,15 +422,15 @@ class Toybox(object):
             action_input_obj: An instance of the [ctoybox.Input][] class.
         """
         # implement frameskip(k) by sending the action (k+1) times every time we have an action.
-        js = json_str(action_input_obj).encode('UTF-8')
+        js = json_str(action_input_obj).encode("UTF-8")
         js_cstr = ffi.new("char []", js)
         for _ in range(self.frames_per_action):
             _handle_ffi_result(lib.state_apply_action(self.rstate.get_state(), js_cstr))
-    
+
     def get_state(self) -> np.array:
         """This state here actually refers to the graphical, RGBA or grayscale representation of the current state."""
         return self.rstate.render_frame(self.rsimulator, self.grayscale)
-    
+
     def set_seed(self, seed: int):
         """Control the random number generator of the config -- only affects a new_game.
         
@@ -413,7 +439,7 @@ class Toybox(object):
         """
         self.rsimulator.set_seed(seed)
 
-    def save_frame_image(self, path: str, grayscale: bool =False):
+    def save_frame_image(self, path: str, grayscale: bool = False):
         """Save the current frame image to a PNG file.
         
         Parameters:
@@ -422,10 +448,14 @@ class Toybox(object):
         """
         img = None
         if grayscale:
-            img = Image.fromarray(self.rstate.render_frame_grayscale(self.rsimulator), 'L') 
+            img = Image.fromarray(
+                self.rstate.render_frame_grayscale(self.rsimulator), "L"
+            )
         else:
-            img = Image.fromarray(self.rstate.render_frame_color(self.rsimulator), 'RGBA')
-        img.save(path, format='png')
+            img = Image.fromarray(
+                self.rstate.render_frame_color(self.rsimulator), "RGBA"
+            )
+        img.save(path, format="png")
 
     def get_rgb_frame(self) -> np.array:
         """Get the RGB frame as a numpy array."""
@@ -437,14 +467,14 @@ class Toybox(object):
         Returns:
             The number of points earned in the current state."""
         return self.rstate.score()
-    
+
     def get_lives(self) -> int:
         """Access the number of lives.
 
         Returns:
             The number of lives remaining in the current state."""
         return self.rstate.lives()
-    
+
     def get_level(self) -> int:
         """
         Access the number of levels.
@@ -452,7 +482,7 @@ class Toybox(object):
         Returns:
             The number of levels completed in the current state."""
         return self.rstate.level()
-    
+
     def game_over(self) -> bool:
         """
         Check for game over condition.
@@ -501,7 +531,9 @@ class Toybox(object):
         # new_game replaces state!
         self.new_game()
 
-    def query_state_json(self, query: str, args: Union[Dict[str, Any], str]="null") -> Dict[str, Any]: 
+    def query_state_json(
+        self, query: str, args: Union[Dict[str, Any], str] = "null"
+    ) -> Dict[str, Any]:
         """Submit a query to the game's query system -- faster than accessing the whole JSON for quick introspection.
 
         Parameters:
@@ -517,17 +549,17 @@ class Toybox(object):
             self.rstate = None
             del self.rsimulator
             self.rsimulator = None
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.__del__()
-    
-    def schema_for_state(self) -> Dict[str,Any]:
+
+    def schema_for_state(self) -> Dict[str, Any]:
         """Get the JSON Schema for the frame State object."""
         return self.rsimulator.schema_for_state()
-    
+
     def schema_for_config(self) -> Dict[str, Any]:
         """Get the JSON Schema for the Config object."""
         return self.rsimulator.schema_for_config()

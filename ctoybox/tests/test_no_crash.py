@@ -1,6 +1,7 @@
 import unittest
 from ctoybox import Toybox
 
+
 class TestNoCrash(unittest.TestCase):
     def test_amidar(self):
         config = None
@@ -10,17 +11,17 @@ class TestNoCrash(unittest.TestCase):
             state = tb.state_to_json()
             self.assertEqual(1, tb.get_level())
             self.assertEqual(0, tb.get_score())
-    
+
     def test_breakout(self):
         config = None
         state = None
         with Toybox("breakout") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
-            self.assertEqual(108, tb.query_state_json('bricks_remaining'))
+            self.assertEqual(108, tb.query_state_json("bricks_remaining"))
             self.assertEqual(1, tb.get_level())
             self.assertEqual(0, tb.get_score())
-    
+
     def test_space_invaders(self):
         config = None
         state = None
@@ -29,15 +30,13 @@ class TestNoCrash(unittest.TestCase):
             state = tb.state_to_json()
             self.assertEqual(1, tb.get_level())
             self.assertEqual(0, tb.get_score())
-    
+
     def test_gridworld(self):
         config = None
         state = None
         with Toybox("gridworld") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
-    
-
 
 
 if __name__ == "__main__":
