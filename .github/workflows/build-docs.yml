@@ -1,0 +1,25 @@
+on:
+    push:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v1
+    - name: Setup Python environment
+      uses: actions/setup-python@v1.1.1
+      with:
+        python-version: 3.6
+    - name: doc-install
+      run: |
+        pip install -U ctoybox
+        pip install -r doc-requirements.txt
+    - name: mkdocs
+      run: mkdocs build
+    - name: upload-docs
+      uses: actions/upload-artifact@v1
+      with:
+        name: docs
+        path: site/
