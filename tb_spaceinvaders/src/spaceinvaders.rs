@@ -2,8 +2,8 @@ use super::destruction;
 use super::font::{draw_score, get_sprite, FontChoice};
 use super::types::*;
 use crate::firing_ai::{enemy_fire_lasers, FiringAI};
-use itertools::Itertools;
 use serde_json;
+use std::collections::{HashMap, HashSet};
 use toybox_core::collision::Rect;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData, SpriteData};
 use toybox_core::random;
@@ -387,6 +387,9 @@ impl Ufo {
         self.appearance_counter = Some(screen::UFO_PERIOD);
         self.death_counter = None;
     }
+    fn is_visible(&self) -> bool {
+        self.appearance_counter.is_none()
+    }
 }
 impl Enemy {
     fn new(x: i32, y: i32, row: i32, col: i32, id: u32) -> Enemy {
@@ -548,7 +551,7 @@ impl StateCore {
     // If the player's laser has hit the UFO, start its death timer.
     fn laser_ufo_collision(&mut self) {
         // If the UFO has not yet appeared, it can't be hit.
-        if self.ufo.appearance_counter.is_some() {
+        if !self.ufo.is_visible() {
             return;
         }
         // If the UFO is currently dying, it can't be hit.
@@ -785,7 +788,7 @@ impl StateCore {
         let mut out = Vec::new();
 
         let alive: Vec<&Enemy> = self.enemies.iter().filter(|e| e.alive).collect();
-        let columns: Vec<i32> = alive.iter().map(|e| e.col).unique().collect();
+        let columns: HashSet<i32> = alive.iter().map(|e| e.col).collect();
 
         for col in columns.into_iter() {
             let bottom = alive
@@ -926,6 +929,78 @@ where
     fn score(&self) -> i32 {
         self.state.score
     }
+    fn handcrafted_features(&self) -> HashMap<String, f32> {
+        fn boolf(x: bool) -> f32 {
+            if x {
+                1.0
+            } else {
+                -1.0
+            }
+        }
+
+        let mut out = HashMap::default();
+        out.insert("lives".into(), self.state.lives as f32);
+        out.insert("level".into(), self.state.level as f32);
+        out.insert("score".into(), self.state.score as f32);
+
+        out.insert("player_x".into(), self.state.ship.x as f32);
+        out.insert("laser_alive".into(), boolf(self.state.ship_laser.is_some()));
+
+        let (edx, edy) = self.state.enemies_movement.move_dir.delta();
+        out.insert("enemy_dir_x".into(), edx as f32);
+        out.insert("enemy_dir_y".into(), edy as f32);
+
+        out.insert(
+            "mothership_x".into(),
+            if self.state.ufo.is_visible() {
+                self.state.ufo.x as f32
+            } else {
+                -1.0_f32
+            },
+        );
+
+        // shield features:
+        for (i, shield) in self.state.shields.iter().enumerate() {
+            let size = (shield.width() * shield.height()) as f32;
+            let percentage = shield.count_visible_pixels() as f32 / size;
+            out.insert(format!("shield_{}_pct", i), percentage);
+            out.insert(format!("shield_{}_x", i), shield.x as f32);
+        }
+
+        // TODO: looks like only 1 laser is supported.
+        for (i, laser) in self.state.enemy_lasers.iter().enumerate() {
+            out.insert(format!("laser_{}_x", i), laser.x as f32);
+        }
+        // Make sure the feature vector doesn't vary in size too much.
+        if self.state.enemy_lasers.is_empty() {
+            out.insert("laser_0_x".into(), -1.0_f32);
+        }
+
+        // Collect one feature per column of living enemies.
+        let mut columns: HashMap<i32, f32> = self
+            .state
+            .enemies
+            .iter()
+            .map(|e| (e.col, -1.0_f32))
+            .collect();
+
+        // It is a the maximum depth of enemy!
+        for e in self.state.enemies.iter().filter(|e| e.alive) {
+            let value = e.row as f32;
+            columns.entry(e.col).and_modify(|val: &mut f32| {
+                if *val < value {
+                    *val = value;
+                }
+            });
+        }
+
+        for (col, ftr) in columns.into_iter() {
+            out.insert(format!("enemy_col_{}", col), ftr);
+        }
+
+        out
+    }
+
     fn update_mut(&mut self, buttons: Input) {
         if self.state.reset_condition() {
             // If enemies hit the earth, you have lost. Game is over.
@@ -1032,7 +1107,7 @@ where
             screen::GAME_DOT_SIZE.1,
         ));
         // draw score or mothership
-        if self.state.ufo.appearance_counter.is_none() {
+        if self.state.ufo.is_visible() {
             if let Some(ufo_sprite) = get_ufo_sprite(&self.state.ufo) {
                 output.push(Drawable::sprite(
                     self.state.ufo.x,

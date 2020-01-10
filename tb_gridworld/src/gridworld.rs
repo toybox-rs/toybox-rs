@@ -268,6 +268,13 @@ impl toybox_core::State for State {
     fn score(&self) -> i32 {
         self.frame.score
     }
+    fn handcrafted_features(&self) -> HashMap<String, f32> {
+        let mut out = HashMap::default();
+        let (x, y) = self.frame.player;
+        out.insert("x".into(), x as f32);
+        out.insert("y".into(), y as f32);
+        out
+    }
 
     fn update_mut(&mut self, buttons: Input) {
         // Must take an action in GridWorld.

@@ -1,7 +1,7 @@
 use super::digit_sprites::{draw_score, DIGIT_HEIGHT};
 use crate::types::*;
 use serde_json;
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData};
 use toybox_core::random;
@@ -733,6 +733,7 @@ impl Board {
         retval
     }
 
+    /// If the entity at position can move in direction dir, return the tile point of its destination or None.
     fn can_move(&self, position: &TilePoint, dir: Direction) -> Option<TilePoint> {
         let tx = position.tx;
         let ty = position.ty;
@@ -1124,6 +1125,69 @@ where
     }
     fn level(&self) -> i32 {
         self.state.level
+    }
+    fn handcrafted_features(&self) -> HashMap<String, f32> {
+        fn boolf(x: bool) -> f32 {
+            if x {
+                1.0
+            } else {
+                -1.0
+            }
+        }
+        let mut out = HashMap::default();
+        let player = &self.state.player;
+
+        let px = player.position.x;
+        let py = player.position.y;
+
+        let ptile = player.position.to_tile();
+
+        out.insert("player_x".into(), px as f32);
+        out.insert("player_y".into(), py as f32);
+
+        out.insert("jumps".into(), self.state.jumps as f32);
+        out.insert("lives".into(), self.state.lives as f32);
+        out.insert("level".into(), self.state.level as f32);
+        out.insert("score".into(), self.state.score as f32);
+        out.insert("jump_time".into(), self.state.jump_timer as f32);
+        out.insert("chase_time".into(), self.state.chase_timer as f32);
+
+        out.insert(
+            "up".into(),
+            boolf(self.state.board.can_move(&ptile, Direction::Up).is_some()),
+        );
+        out.insert(
+            "left".into(),
+            boolf(self.state.board.can_move(&ptile, Direction::Left).is_some()),
+        );
+        out.insert(
+            "down".into(),
+            boolf(self.state.board.can_move(&ptile, Direction::Down).is_some()),
+        );
+        out.insert(
+            "right".into(),
+            boolf(
+                self.state
+                    .board
+                    .can_move(&ptile, Direction::Right)
+                    .is_some(),
+            ),
+        );
+        out.insert(
+            "is_junction".into(),
+            boolf(self.state.board.is_junction(&ptile)),
+        );
+        out.insert(
+            "on_painted_tile".into(),
+            boolf(self.state.board.is_painted(&ptile)),
+        );
+
+        for (i, e) in self.state.enemies.iter().enumerate() {
+            out.insert(format!("enemy_{}_dx", i), (px - e.position.x) as f32);
+            out.insert(format!("enemy_{}_dy", i), (py - e.position.y) as f32);
+        }
+
+        out
     }
     fn update_mut(&mut self, buttons: Input) {
         let pre_update_score: i32 = self.score();

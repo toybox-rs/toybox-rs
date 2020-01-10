@@ -19,6 +19,7 @@ pub use crate::direction::Direction;
 
 extern crate rand_core;
 
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
@@ -60,6 +61,8 @@ pub trait State {
     fn to_json(&self) -> String;
     /// Copy this state to save it for later.
     fn copy(&self) -> Box<dyn State>;
+    /// Get handcrafted feature vector: for traditional RL learning algorithms.
+    fn handcrafted_features(&self) -> HashMap<String, f32>;
     /// Submit a query to this state object, returning a JSON String or error message.
     fn query_json(&self, query: &str, args: &serde_json::Value) -> Result<String, QueryError>;
 }

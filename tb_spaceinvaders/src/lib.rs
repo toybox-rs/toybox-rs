@@ -1,4 +1,3 @@
-extern crate itertools;
 extern crate serde;
 extern crate serde_json;
 extern crate toybox_core;

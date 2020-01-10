@@ -2,6 +2,7 @@ use super::body2d::Body2D;
 use super::font::{draw_lives, draw_score, DIGIT_WIDTH};
 use super::vec2d::Vec2D;
 use ordered_float::NotNan;
+use std::collections::HashMap;
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable};
 use toybox_core::random;
@@ -478,6 +479,56 @@ where
     }
     fn score(&self) -> i32 {
         self.state.score
+    }
+    fn handcrafted_features(&self) -> HashMap<String, f32> {
+        fn boolf(x: bool) -> f32 {
+            if x {
+                1.0
+            } else {
+                -1.0
+            }
+        }
+
+        let mut out = HashMap::default();
+
+        out.insert("lives".into(), self.state.lives as f32);
+        out.insert("level".into(), self.state.level as f32);
+        out.insert("score".into(), self.state.score as f32);
+        out.insert("is_dead".into(), boolf(self.state.is_dead));
+
+        let paddle = &self.state.paddle;
+
+        out.insert("paddle_x".into(), paddle.position.x as f32);
+
+        for (i, ball) in self.state.balls.iter().enumerate() {
+            out.insert(format!("ball_{}_x", i), ball.position.x as f32);
+            out.insert(format!("ball_{}_y", i), ball.position.y as f32);
+            out.insert(format!("ball_{}_vx", i), ball.velocity.x as f32);
+            out.insert(format!("ball_{}_vy", i), ball.velocity.y as f32);
+        }
+
+        // column features represent the lowest brick in that column, -1 if none.
+        let mut columns: HashMap<i32, f32> = self
+            .state
+            .bricks
+            .iter()
+            .map(|b| (b.col, -1.0_f32))
+            .collect();
+
+        for brick in self.state.bricks.iter().filter(|b| b.alive) {
+            let value = brick.row as f32;
+            columns.entry(brick.col).and_modify(|val: &mut f32| {
+                if *val < value {
+                    *val = value;
+                }
+            });
+        }
+
+        for (col_no, row_f) in columns.into_iter() {
+            out.insert(format!("brick_col_{}", col_no), row_f);
+        }
+
+        out
     }
 
     /// Mutably update the game state.

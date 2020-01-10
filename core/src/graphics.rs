@@ -157,6 +157,17 @@ impl SpriteData {
     pub fn position(&self) -> (i32, i32) {
         (self.x, self.y)
     }
+    pub fn count_visible_pixels(&self) -> u32 {
+        let mut out = 0;
+        for row in &self.data {
+            for px in row {
+                if px.is_visible() {
+                    out += 1;
+                }
+            }
+        }
+        out
+    }
     pub fn find_visible_color(&self) -> Option<Color> {
         for row in &self.data {
             for px in row {
