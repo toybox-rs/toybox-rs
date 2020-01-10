@@ -1182,6 +1182,39 @@ where
             boolf(self.state.board.is_painted(&ptile)),
         );
 
+        let tile_dir = self
+            .state
+            .board
+            .tiles
+            .iter()
+            .enumerate()
+            // For every tile that needs painting in every row:
+            .flat_map(|(y, row)| {
+                let y = y.clone();
+                let tx = ptile.tx.clone();
+                let ty = ptile.ty.clone();
+                // For every tile that needs painting:
+                row.iter()
+                    .enumerate()
+                    .filter(|(_, t)| t.needs_paint())
+                    // Calculate the distance.
+                    // This inner closure copies (y, tx, and ty).
+                    .map(move |(x, _)| {
+                        let dx = tx - (x as i32);
+                        let dy = ty - (y as i32);
+                        let manhattan_dist = dx.abs() + dy.abs();
+                        (manhattan_dist, (dx, dy))
+                    })
+            })
+            // Find the closest unpainted tile:
+            .min_by_key(|(dist, _)| dist.clone())
+            // And keep the (dx,dy) towards it.
+            .map(|(_, dir)| dir)
+            // And use (0,0) for a difference if there are no unpainted tiles left.
+            .unwrap_or((0, 0));
+        out.insert("closest_unpainted_tile_dx".into(), tile_dir.0 as f32);
+        out.insert("closest_unpainted_tile_dy".into(), tile_dir.1 as f32);
+
         for (i, e) in self.state.enemies.iter().enumerate() {
             out.insert(format!("enemy_{}_dx", i), (px - e.position.x) as f32);
             out.insert(format!("enemy_{}_dy", i), (py - e.position.y) as f32);
