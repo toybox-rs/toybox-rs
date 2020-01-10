@@ -123,6 +123,7 @@ impl Default for Breakout {
                 StartBall::new(0.5 * w, y, 150.0),
                 StartBall::new(0.9 * w, y, 150.0),
             ],
+            max_balls: 1,
             paddle_discrete_segments: Some(5),
         }
     }
@@ -504,6 +505,12 @@ where
             out.insert(format!("ball_{}_y", i), ball.position.y as f32 / scale_y);
             out.insert(format!("ball_{}_vx", i), ball.velocity.x as f32 / scale_x);
             out.insert(format!("ball_{}_vy", i), ball.velocity.y as f32 / scale_y);
+        }
+        for i in self.state.balls.len()..(self.config.max_balls as usize) {
+            out.insert(format!("ball_{}_x", i), -1.0);
+            out.insert(format!("ball_{}_y", i), -1.0);
+            out.insert(format!("ball_{}_vx", i), 0.0);
+            out.insert(format!("ball_{}_vy", i), 0.0);
         }
 
         // column features represent the lowest brick in that column, -1 if none.

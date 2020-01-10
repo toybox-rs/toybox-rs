@@ -56,6 +56,10 @@ pub struct Breakout {
     pub ball_start_positions: Vec<StartBall>,
     /// When this is None, the paddle uses continuous logic for bouncing (imagining the paddle is kind of a circle). In the real game, some discrete math was used; i.e. the paddle behaves like a n-polygon. This could affect learning speed.
     pub paddle_discrete_segments: Option<i32>,
+    /// Maximum number of balls in play at any one time.
+    /// Currently affects feature generation and cheat code only!
+    /// Default is 1.
+    pub max_balls: u32,
 }
 
 /// This data structure represents a Brick in the breakout game. Bricks are present in state even if they are destroyed, thus the presence of the "alive" boolean.

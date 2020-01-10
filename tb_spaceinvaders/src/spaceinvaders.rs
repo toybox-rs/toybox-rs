@@ -296,6 +296,7 @@ impl Default for SpaceInvaders {
             start_lives: screen::START_LIVES,
             enemy_protocol: FiringAI::TargetPlayer,
             jitter: 0.5,
+            max_lasers: 2,
             shields: vec![
                 screen::SHIELD1_POS,
                 screen::SHIELD2_POS,
@@ -768,7 +769,7 @@ impl StateCore {
 
     fn enemy_fire_lasers(&mut self, config: &SpaceInvaders) {
         // Don't fire too many lasers.
-        if self.enemy_lasers.len() > 1 {
+        if (self.enemy_lasers.len() as u32) >= config.max_lasers {
             return;
         }
         self.enemy_shot_delay -= 1;
@@ -971,8 +972,8 @@ where
             out.insert(format!("laser_{}_x", i), laser.x as f32 / scale_x);
         }
         // Make sure the feature vector doesn't vary in size too much.
-        if self.state.enemy_lasers.is_empty() {
-            out.insert("laser_0_x".into(), -1.0_f32);
+        for i in self.state.enemy_lasers.len()..(self.config.max_lasers as usize) {
+            out.insert(format!("laser_{}_x", i), -1.0_f32);
         }
 
         // Collect one feature per column of living enemies.

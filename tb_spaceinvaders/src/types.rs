@@ -103,6 +103,8 @@ pub struct SpaceInvaders {
     pub start_lives: i32,
     /// How do enemies shoot?
     pub enemy_protocol: FiringAI,
+    /// How many enemy laser shots do we allow?
+    pub max_lasers: u32,
     /// The jitter parameter represents the stochasticity of enemy firing protocols.
     pub jitter: f64,
     /// This is a list of (x,y) positions that represents where shields are created.

@@ -25,7 +25,10 @@ class TestHandcraftedFeatures(unittest.TestCase):
         # determine how many points these actions earn:
         all_feature_vectors = _exec_actions_collect_features(actions, tb)
 
+        first_features = set(all_feature_vectors[0].keys())
         for fv in all_feature_vectors:
+            if len(fv) > len(first_features):
+                self.assertSetEqual(set(fv.keys()), first_features)
             for (fname, feature) in fv.items():
                 if feature < -1.0 or feature > 1.0:
                     self.fail(
