@@ -3,7 +3,7 @@ use super::font::{draw_score, get_sprite, FontChoice};
 use super::types::*;
 use crate::firing_ai::{enemy_fire_lasers, FiringAI};
 use serde_json;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use toybox_core::collision::Rect;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData, SpriteData};
 use toybox_core::random;
@@ -788,7 +788,7 @@ impl StateCore {
         let mut out = Vec::new();
 
         let alive: Vec<&Enemy> = self.enemies.iter().filter(|e| e.alive).collect();
-        let columns: HashSet<i32> = alive.iter().map(|e| e.col).collect();
+        let columns: BTreeSet<i32> = alive.iter().map(|e| e.col).collect();
 
         for col in columns.into_iter() {
             let bottom = alive
@@ -930,30 +930,29 @@ where
         self.state.score
     }
     fn handcrafted_features(&self) -> HashMap<String, f32> {
-        fn boolf(x: bool) -> f32 {
-            if x {
-                1.0
-            } else {
-                -1.0
-            }
-        }
+        use toybox_core::features::boolf;
+
+        let (width, height) = screen::GAME_SIZE;
+        let scale_x = width as f32;
+        let scale_y = height as f32;
 
         let mut out = HashMap::default();
-        out.insert("lives".into(), self.state.lives as f32);
-        out.insert("level".into(), self.state.level as f32);
-        out.insert("score".into(), self.state.score as f32);
+        out.insert(
+            "lives".into(),
+            self.state.lives as f32 / self.config.start_lives as f32,
+        );
 
-        out.insert("player_x".into(), self.state.ship.x as f32);
+        out.insert("player_x".into(), self.state.ship.x as f32 / scale_x);
         out.insert("laser_alive".into(), boolf(self.state.ship_laser.is_some()));
 
         let (edx, edy) = self.state.enemies_movement.move_dir.delta();
-        out.insert("enemy_dir_x".into(), edx as f32);
-        out.insert("enemy_dir_y".into(), edy as f32);
+        out.insert("enemy_dir_x".into(), edx as f32 / scale_x);
+        out.insert("enemy_dir_y".into(), edy as f32 / scale_y);
 
         out.insert(
             "mothership_x".into(),
             if self.state.ufo.is_visible() {
-                self.state.ufo.x as f32
+                self.state.ufo.x as f32 / scale_x
             } else {
                 -1.0_f32
             },
@@ -964,12 +963,12 @@ where
             let size = (shield.width() * shield.height()) as f32;
             let percentage = shield.count_visible_pixels() as f32 / size;
             out.insert(format!("shield_{}_pct", i), percentage);
-            out.insert(format!("shield_{}_x", i), shield.x as f32);
+            out.insert(format!("shield_{}_x", i), shield.x as f32 / scale_x);
         }
 
         // TODO: looks like only 1 laser is supported.
         for (i, laser) in self.state.enemy_lasers.iter().enumerate() {
-            out.insert(format!("laser_{}_x", i), laser.x as f32);
+            out.insert(format!("laser_{}_x", i), laser.x as f32 / scale_x);
         }
         // Make sure the feature vector doesn't vary in size too much.
         if self.state.enemy_lasers.is_empty() {
@@ -986,7 +985,7 @@ where
 
         // It is a the maximum depth of enemy!
         for e in self.state.enemies.iter().filter(|e| e.alive) {
-            let value = e.row as f32;
+            let value = (e.row + 1) as f32;
             columns.entry(e.col).and_modify(|val: &mut f32| {
                 if *val < value {
                     *val = value;
@@ -994,8 +993,9 @@ where
             });
         }
 
+        let num_rows = self.config.row_scores.len() as f32;
         for (col, ftr) in columns.into_iter() {
-            out.insert(format!("enemy_col_{}", col), ftr);
+            out.insert(format!("enemy_col_{}", col), ftr / num_rows);
         }
 
         out

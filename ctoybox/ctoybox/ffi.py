@@ -203,7 +203,7 @@ class State(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.__del__()
 
-    def clone(self) -> 'State':
+    def clone(self) -> "State":
         """Quickly make a copy of this state; should be more efficient than saving the JSON."""
         return State(self.sim, state=lib.state_clone(self.get_state()))
 
@@ -211,6 +211,10 @@ class State(object):
         """Get the raw state pointer."""
         assert self.__state is not None
         return self.__state
+
+    def handcrafted_features(self) -> Dict[str, float]:
+        """Ask the state for handcrafted feature representation."""
+        return json.loads(rust_str(lib.state_handcrafted_features(self.__state)))
 
     def lives(self) -> int:
         """How many lives are remaining in the current state?"""
@@ -493,6 +497,11 @@ class Toybox(object):
         Returns:
             The number of levels completed in the current state."""
         return self.rstate.level()
+
+
+    def get_handcrafted_features(self) -> Dict[str, float]:
+        """Ask the state for handcrafted feature representation."""
+        return self.rstate.handcrafted_features()
 
     def game_over(self) -> bool:
         """

@@ -45,7 +45,11 @@ class TestNoCrash(unittest.TestCase):
         state = None
         with Toybox("gridworld") as tb:
             config = tb.config_to_json()
-            state = tb.state_to_json()
+            state = tb.state_to_json()["frame"]
+            # test handcrafted features no crash
+            features = tb.get_handcrafted_features()
+            self.assertAlmostEqual(features["x"], state["player"][0])
+            self.assertAlmostEqual(features["y"], state["player"][1])
 
 
 if __name__ == "__main__":

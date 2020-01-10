@@ -1127,30 +1127,41 @@ where
         self.state.level
     }
     fn handcrafted_features(&self) -> HashMap<String, f32> {
-        fn boolf(x: bool) -> f32 {
-            if x {
-                1.0
-            } else {
-                -1.0
-            }
-        }
+        use toybox_core::features::*;
         let mut out = HashMap::default();
         let player = &self.state.player;
+
+        let (world_sx, world_sy) = world::TILE_SIZE;
+        let board_sx = self.state.board.width as i32;
+        let board_sy = self.state.board.height as i32;
+
+        let world_sx = (world_sx * board_sx) as f32;
+        let world_sy = (world_sy * board_sy) as f32;
 
         let px = player.position.x;
         let py = player.position.y;
 
         let ptile = player.position.to_tile();
 
-        out.insert("player_x".into(), px as f32);
-        out.insert("player_y".into(), py as f32);
+        out.insert("player_x".into(), px as f32 / world_sx);
+        out.insert("player_y".into(), py as f32 / world_sy);
 
-        out.insert("jumps".into(), self.state.jumps as f32);
-        out.insert("lives".into(), self.state.lives as f32);
-        out.insert("level".into(), self.state.level as f32);
-        out.insert("score".into(), self.state.score as f32);
-        out.insert("jump_time".into(), self.state.jump_timer as f32);
-        out.insert("chase_time".into(), self.state.chase_timer as f32);
+        out.insert(
+            "jumps".into(),
+            self.state.jumps as f32 / self.config.start_jumps as f32,
+        );
+        out.insert(
+            "lives".into(),
+            self.state.lives as f32 / self.config.start_lives as f32,
+        );
+        out.insert(
+            "jump_time".into(),
+            self.state.jump_timer as f32 / self.config.jump_time as f32,
+        );
+        out.insert(
+            "chase_time".into(),
+            self.state.chase_timer as f32 / self.config.chase_time as f32,
+        );
 
         out.insert(
             "up".into(),
@@ -1212,12 +1223,24 @@ where
             .map(|(_, dir)| dir)
             // And use (0,0) for a difference if there are no unpainted tiles left.
             .unwrap_or((0, 0));
-        out.insert("closest_unpainted_tile_dx".into(), tile_dir.0 as f32);
-        out.insert("closest_unpainted_tile_dy".into(), tile_dir.1 as f32);
+        out.insert(
+            "closest_unpainted_tile_dx".into(),
+            tile_dir.0 as f32 / world_sx,
+        );
+        out.insert(
+            "closest_unpainted_tile_dy".into(),
+            tile_dir.1 as f32 / world_sy,
+        );
 
         for (i, e) in self.state.enemies.iter().enumerate() {
-            out.insert(format!("enemy_{}_dx", i), (px - e.position.x) as f32);
-            out.insert(format!("enemy_{}_dy", i), (py - e.position.y) as f32);
+            out.insert(
+                format!("enemy_{}_dx", i),
+                (e.position.x - px) as f32 / world_sx,
+            );
+            out.insert(
+                format!("enemy_{}_dy", i),
+                (e.position.y - py) as f32 / world_sy,
+            );
         }
 
         out

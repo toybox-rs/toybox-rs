@@ -23,6 +23,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
+pub mod features;
+
 /// This enum defines failure conditions for a query_json call.
 #[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum QueryError {

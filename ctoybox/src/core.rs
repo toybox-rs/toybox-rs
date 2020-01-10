@@ -238,6 +238,14 @@ pub extern "C" fn state_score(state_ptr: *mut WrapState) -> i32 {
 }
 
 #[no_mangle]
+pub extern "C" fn state_handcrafted_features(state_ptr: *mut WrapState) -> *const c_void {
+    return_string(
+        &serde_json::to_string(&get_state(state_ptr).handcrafted_features())
+            .expect("Map<String, f32> should be serializable to JSON!"),
+    )
+}
+
+#[no_mangle]
 pub extern "C" fn state_to_json(state_ptr: *mut WrapState) -> *const c_void {
     return_string(&get_state(state_ptr).to_json())
 }

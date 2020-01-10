@@ -481,30 +481,29 @@ where
         self.state.score
     }
     fn handcrafted_features(&self) -> HashMap<String, f32> {
-        fn boolf(x: bool) -> f32 {
-            if x {
-                1.0
-            } else {
-                -1.0
-            }
-        }
+        use toybox_core::features::boolf;
 
         let mut out = HashMap::default();
 
-        out.insert("lives".into(), self.state.lives as f32);
-        out.insert("level".into(), self.state.level as f32);
-        out.insert("score".into(), self.state.score as f32);
+        let (width, height) = screen::GAME_SIZE;
+        let scale_x = width as f32;
+        let scale_y = height as f32;
+
+        out.insert(
+            "lives".into(),
+            self.state.lives as f32 / self.config.start_lives as f32,
+        );
         out.insert("is_dead".into(), boolf(self.state.is_dead));
 
         let paddle = &self.state.paddle;
 
-        out.insert("paddle_x".into(), paddle.position.x as f32);
+        out.insert("paddle_x".into(), paddle.position.x as f32 / scale_x);
 
         for (i, ball) in self.state.balls.iter().enumerate() {
-            out.insert(format!("ball_{}_x", i), ball.position.x as f32);
-            out.insert(format!("ball_{}_y", i), ball.position.y as f32);
-            out.insert(format!("ball_{}_vx", i), ball.velocity.x as f32);
-            out.insert(format!("ball_{}_vy", i), ball.velocity.y as f32);
+            out.insert(format!("ball_{}_x", i), ball.position.x as f32 / scale_x);
+            out.insert(format!("ball_{}_y", i), ball.position.y as f32 / scale_y);
+            out.insert(format!("ball_{}_vx", i), ball.velocity.x as f32 / scale_x);
+            out.insert(format!("ball_{}_vy", i), ball.velocity.y as f32 / scale_y);
         }
 
         // column features represent the lowest brick in that column, -1 if none.
@@ -516,7 +515,7 @@ where
             .collect();
 
         for brick in self.state.bricks.iter().filter(|b| b.alive) {
-            let value = brick.row as f32;
+            let value = (brick.row + 1) as f32;
             columns.entry(brick.col).and_modify(|val: &mut f32| {
                 if *val < value {
                     *val = value;
@@ -524,8 +523,9 @@ where
             });
         }
 
+        let num_rows = self.config.row_colors.len() as f32;
         for (col_no, row_f) in columns.into_iter() {
-            out.insert(format!("brick_col_{}", col_no), row_f);
+            out.insert(format!("brick_col_{}", col_no), row_f / num_rows);
         }
 
         out
