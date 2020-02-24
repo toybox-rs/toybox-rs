@@ -34,6 +34,7 @@ jobs:
       - name: py-install
         run: |
           pip install -r ctoybox/requirements.txt
+          pip install --upgrade pip
           pip install maturin
       - name: build-wheel
         working-directory: ./ctoybox

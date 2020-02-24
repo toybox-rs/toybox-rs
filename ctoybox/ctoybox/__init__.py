@@ -1,1 +1,2 @@
-from .ffi import Input, Toybox, State, Simulator
+from .ffi import Toybox, State, Simulator
+from .input import Input

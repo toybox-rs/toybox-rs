@@ -111,7 +111,7 @@ pub struct StateCore {
 }
 
 /// The breakout game's true state has both the configuration that launched the game and information about the current frame.
-#[derive(Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct State {
     /// This contains information about the game that does not change during gameplay, but is referenced, read-only.
     pub config: Breakout,

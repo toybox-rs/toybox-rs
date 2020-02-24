@@ -1112,7 +1112,10 @@ impl toybox_core::Simulation for Amidar {
     }
 }
 
-impl toybox_core::State for State {
+impl toybox_core::State for State
+where
+    State: Clone,
+{
     fn lives(&self) -> i32 {
         self.state.lives
     }
@@ -1506,6 +1509,9 @@ impl toybox_core::State for State {
             }
             _ => Err(QueryError::NoSuchQuery)?,
         })
+    }
+    fn copy(&self) -> Box<dyn toybox_core::State> {
+        Box::new(self.clone())
     }
 }
 

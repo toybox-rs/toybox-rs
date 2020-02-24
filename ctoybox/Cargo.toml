@@ -1,6 +1,6 @@
 [package]
 name = "ctoybox"
-version = "0.4.0"
+version = "0.5.0-alpha"
 authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>", "John Foley <jjfoley@smith.edu>", "Kaleigh Clary <kclary@cs.umass.edu>"]
 readme = "README.md"
 description = "Package containing Rust Toybox games."
@@ -16,6 +16,7 @@ crate-type = ["cdylib"]
 libc = "0.2"
 serde = "1"
 serde_json = "1"
+serde_derive = "1"
 amidar = {path = "../tb_amidar", version="*"}
 breakout = {path = "../tb_breakout", version="*"}
 toybox = {path = "../toybox", version="*"}

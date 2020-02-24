@@ -1,8 +1,11 @@
 target
 Cargo.lock
-venv
+*venv
 .vscode
 *~
 *.pyc
 __pycache__
 *.wheel
+ctoybox/build
+.ipynb_checkpoints
+site

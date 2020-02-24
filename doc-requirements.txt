@@ -1,0 +1,6 @@
+mkdocs
+mkdocs-jupyter
+mkdocstrings
+pymdown-extensions
+matplotlib
+jupyter

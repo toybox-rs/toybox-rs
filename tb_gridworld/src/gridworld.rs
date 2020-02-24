@@ -334,4 +334,8 @@ impl toybox_core::State for State {
             _ => Err(QueryError::NoSuchQuery)?,
         })
     }
+
+    fn copy(&self) -> Box<dyn toybox_core::State> {
+        Box::new(self.clone())
+    }
 }
