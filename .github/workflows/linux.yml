@@ -24,15 +24,13 @@ jobs:
             profile: minimal
             toolchain: stable
             override: true
-            target: x86_64-unknown-linux-musl
       - name: Setup Python environment
         uses: actions/setup-python@v1.1.1
         with:
           python-version: 3.5
       - name: cargo build and test
         run: |
-          cargo build --release --target=x86_64-unknown-linux-musl
-          cargo test --release --target=x86_64-unknown-linux-musl
+          cargo test --release
       - name: py-install
         run: |
           pip install -r ctoybox/requirements.txt
@@ -41,7 +39,7 @@ jobs:
       - name: build-wheel
         working-directory: ./ctoybox
         run: |
-          maturin build --release --target=x86_64-unknown-linux-musl
+          docker run -v $(pwd):/io konstin2/maturin build --release
           pip install ../target/wheels/ctoybox*.whl
       - name: py-unittest
         working-directory: ./ctoybox
@@ -57,5 +55,5 @@ jobs:
         working-directory: ./ctoybox
         env: 
           MATURIN_PASSWORD: ${{ secrets.CTOYBOX_PYPI_TOKEN }}
-        run: maturin publish -b cffi --username __token__ --target=x86_64-unknown-linux-musl
+        run: maturin publish -b cffi --username __token__
 
