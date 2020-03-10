@@ -1,6 +1,6 @@
 [package]
 name = "ctoybox"
-version = "0.5.0-alpha"
+version = "0.4.1"
 authors = ["Emma 'Frank' Tosch <etosch@cs.umass.edu>", "John Foley <jjfoley@smith.edu>", "Kaleigh Clary <kclary@cs.umass.edu>"]
 readme = "README.md"
 description = "Package containing Rust Toybox games."
