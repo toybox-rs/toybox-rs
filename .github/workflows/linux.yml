@@ -9,42 +9,7 @@ on:
     - cron:  '23 23 * * 4'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v1
-      - name: Setup Rust environment
-        uses: actions-rs/toolchain@v1
-        with:
-            profile: minimal
-            toolchain: stable
-            override: true
-      - name: Setup Python environment
-        uses: actions/setup-python@v1.1.1
-        with:
-          python-version: 3.5
-      - name: cargo build and test
-        run: |
-          cargo test
-      - name: py-install
-        run: |
-          pip install -r ctoybox/requirements.txt
-          pip install --upgrade pip
-          pip install maturin
-      - name: build-wheel
-        working-directory: ./ctoybox
-        run: |
-          maturin build
-          pip install ../target/wheels/ctoybox*.whl
-          rm -rf ../target/wheels/
-      - name: py-unittest
-        working-directory: ./ctoybox
-        run: |
-          python -I -m unittest discover -s tests -v
   manylinux-build:
-    needs: test
     runs-on: ubuntu-latest
     container:
       image: konstin2/maturin:master
@@ -54,10 +19,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v1
       - name: maturin-build
-        working-directory: /io/ctoybox
+        working-directory:
         run: |
           rustup default 1.41.0
-          maturin build --release
+          cd ctoybox && maturin build --release
       - uses: actions/upload-artifact@v1
         name: upload-wheel
         with:
@@ -65,8 +30,7 @@ jobs:
           path: target/wheels/
       - name: '[on-create] pypi-publish'
         if: github.event_name == 'release'
-        working-directory: /io/ctoybox
         env: 
           MATURIN_PASSWORD: ${{ secrets.CTOYBOX_PYPI_TOKEN }}
-        run: maturin publish -b cffi --username __token__
+        run: cd ctoybox && maturin publish -b cffi --username __token__
 
