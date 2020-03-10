@@ -24,6 +24,7 @@ jobs:
             profile: minimal
             toolchain: stable
             override: true
+            target: x86_64-unknown-linux-musl
       - name: Setup Python environment
         uses: actions/setup-python@v1.1.1
         with:
@@ -39,7 +40,7 @@ jobs:
       - name: build-wheel
         working-directory: ./ctoybox
         run: |
-          maturin build --release
+          maturin build --release --target=x86_64-unknown-linux-musl
           pip install ../target/wheels/ctoybox*.whl
       - name: py-unittest
         working-directory: ./ctoybox
@@ -55,4 +56,5 @@ jobs:
         working-directory: ./ctoybox
         env: 
           MATURIN_PASSWORD: ${{ secrets.CTOYBOX_PYPI_TOKEN }}
-        run: maturin publish -b cffi --username __token__
+        run: maturin publish -b cffi --username __token__ --target=x86_64-unknown-linux-musl
+
