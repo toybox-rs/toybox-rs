@@ -449,6 +449,7 @@ class Toybox(object):
             seed: a parameter to reset the built-in random number generator.
         """
         self.rsimulator.set_seed(seed)
+        # Maybe call new game here?
 
     def save_frame_image(self, path: str, grayscale: bool = False):
         """Save the current frame image to a PNG file.

@@ -61,3 +61,16 @@ impl RngCore for Gen {
         Ok(self.fill_bytes(dest))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_rng_initilize() {
+        let mut rng1 = Gen::new_from_seed(1234 as u32);
+        let mut rng2 = Gen::new_from_seed(12345 as u32);
+
+        assert!(rng1.next_u64() != rng2.next_u64());
+    }
+}
