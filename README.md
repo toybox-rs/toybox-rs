@@ -13,6 +13,12 @@ pip install pygame # optional dependency
 python -m ctoybox.human_play amidar
 ```
 
+## More getting started help:
+
+Check out our getting-started Jupyter Notebook [hosted by Google Colab](https://colab.research.google.com/drive/1MMPseXpJ5esIXwTcHo0EBSG2iLaR0JPB) which renders images from our three implemented games.
+
+Preliminary API documentation is hosted here: [toybox.rs/docs/ctoybox](https://toybox.rs/docs/ctoybox).
+
 ## What is Toybox?
 
 A set of games designed for testing deep RL agents.
