@@ -34,6 +34,14 @@ If you use this code, or otherwise are inspired by our white-box testing approac
 }
 ```
 
+## How do I edit, develop & test?
+
+1. Edit the rust or python code.
+2. Create a virtualenv for your modified ctoybox.
+3. Compile and install locally to the virtualenv. ``cd ctoybox && ./test.sh``
+
+When your changes are ready, make sure you've documented your changes, and submit a pull-request.
+
 ## Projects
 
 - ``core`` - Contains core logic for games; colors, rendering, simple physics, etc.
