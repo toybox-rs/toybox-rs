@@ -1,6 +1,26 @@
 import unittest
 from ctoybox import Toybox
 
+class TestOptionalArgs(unittest.TestCase):
+    def test_with_seed(self):
+        # get default seed
+        v1, v2, v1_, v2_ = [None]*4
+        with Toybox("breakout") as tb:
+            (v1, v2) = tb.state_to_json()["rand"]["state"]
+        with Toybox("breakout", seed=1234) as tb:
+            (v1_, v2_) = tb.state_to_json()["rand"]["state"]
+            self.assertNotEqual(v1, v1_)
+            self.assertNotEqual(v2, v2_)
+
+    def test_with_state(self):
+        state = None
+        with Toybox("breakout") as tb:
+            state = tb.state_to_json()
+            state['lives'] = 10
+        with Toybox("breakout", withstate=state) as tb:
+            state = tb.state_to_json()
+            self.assertEqual(state['lives'], 10)
+            
 
 class TestNoCrash(unittest.TestCase):
     def test_amidar(self):

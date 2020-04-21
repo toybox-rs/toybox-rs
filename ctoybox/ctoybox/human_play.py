@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--fps", type=int, default=32)
     parser.add_argument("--query", type=str, default=None)
     parser.add_argument("--query_args", type=str, default="null")
+    parser.add_argument("--seed", type=int, default=-1)
 
     args = parser.parse_args()
     print("Starting up: " + args.game)
@@ -26,6 +27,10 @@ if __name__ == "__main__":
     with Toybox(args.game) as tb:
         w = tb.get_width()
         h = tb.get_height()
+
+        if args.seed >= 0:
+            tb.set_seed(args.seed)
+            tb.new_game()
 
         config_json = tb.config_to_json()
         state_json = tb.to_state_json()
