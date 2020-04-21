@@ -13,13 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: konstin2/maturin:master
-      volumes:
-        - .:/io
     steps:
       - name: checkout
         uses: actions/checkout@v1
       - name: maturin-build
-        working-directory:
         run: |
           rustup default 1.41.0
           cd ctoybox && maturin build --release
