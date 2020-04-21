@@ -361,8 +361,8 @@ class Toybox(object):
         self.rstate = self.rsimulator.new_game()
         self.grayscale = grayscale
         self.deleted = False
-        self.new_game()
         if seed: self.set_seed(seed)
+        self.new_game()
         if withstate: self.write_state_json(withstate)
 
     def new_game(self):

@@ -22,7 +22,7 @@ class TestSetSeed(unittest.TestCase):
             rng1_before, rng2_before = json['rand']['state']
             tb.set_seed(1234)
             # Get new game
-            #tb.new_game()
+            tb.new_game()
             json = tb.state_to_json()
             rng1_after, rng2_after = json['rand']['state']
             # Now they should be equal

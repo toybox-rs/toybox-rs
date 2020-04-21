@@ -7,10 +7,10 @@ class TestOptionalArgs(unittest.TestCase):
         v1, v2, v1_, v2_ = [None]*4
         with Toybox("breakout") as tb:
             (v1, v2) = tb.state_to_json()["rand"]["state"]
-        with Toybox("breakout", seed=1234):
+        with Toybox("breakout", seed=1234) as tb:
             (v1_, v2_) = tb.state_to_json()["rand"]["state"]
-            self.assertEqual(v1, v1_)
-            self.assertEqual(v2, v2_)
+            self.assertNotEqual(v1, v1_)
+            self.assertNotEqual(v2, v2_)
 
     def test_with_state(self):
         state = None
