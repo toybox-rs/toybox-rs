@@ -340,14 +340,20 @@ class Toybox(object):
 
     """
 
-    def __init__(self, game_name: str, grayscale: bool = True, frameskip: int = 0):
+    def __init__(self, 
+                 game_name: str, 
+                 grayscale: bool = True, 
+                 frameskip: int = 0, 
+                 seed: Optional[int] = None, 
+                 withstate: Optional[dict] = None):
         """
         Construct a new Toybox state/game wrapper. Use this in a with block!
 
         Parameters:
             game_name: One of "breakout", "space_invaders", "amidar", etc.
-            grayscale: Toybox can render directly to grayscale, saving time.
-            frameskip: When an action is submitted, for how many extra frames should it be applied?
+            grayscale: Toybox can render directly to grayscale, saving time. Default is True.
+            frameskip: When an action is submitted, for how many extra frames should it be applied? Default is 0.
+            seed: The seed 
         """
         self.game_name = game_name
         self.frames_per_action = frameskip + 1
@@ -356,6 +362,8 @@ class Toybox(object):
         self.grayscale = grayscale
         self.deleted = False
         self.new_game()
+        if seed: self.set_seed(seed)
+        if withstate: self.write_state_json(withstate)
 
     def new_game(self):
         """
