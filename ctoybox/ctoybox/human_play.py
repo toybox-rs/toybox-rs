@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("--query", type=str, default=None)
     parser.add_argument("--query_args", type=str, default="null")
     parser.add_argument("--seed", type=int, default=-1)
+    parser.add_argument("--record", action='store_const', const=True)
 
     args = parser.parse_args()
     print("Starting up: " + args.game)
@@ -68,6 +69,11 @@ if __name__ == "__main__":
             )
 
             tb.apply_action(player_input)
+            if args.record:
+                if player_input.left: print('left')
+                elif player_input.right: print('right')
+                elif player_input.up: print('up')
+                elif player_input.down: print('down')
             if args.query is not None:
                 print(args.query, tb.query_state_json(args.query, args.query_args))
             image = tb.get_rgb_frame()
