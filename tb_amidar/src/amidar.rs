@@ -1,5 +1,6 @@
 use super::digit_sprites::{draw_score, DIGIT_HEIGHT};
 use crate::types::*;
+use access_json::{JSONQuery, LinearResult};
 use serde_json;
 use std::collections::{HashSet, VecDeque};
 use toybox_core;
@@ -1447,6 +1448,12 @@ where
     }
 
     fn query_json(&self, query: &str, args: &serde_json::Value) -> Result<String, QueryError> {
+        if let Ok(parsed) = JSONQuery::parse(query) {
+            if let Ok(lrs) = parsed.search(&self) {
+                return Ok(serde_json::to_string(&lrs)?);
+            }
+        }
+
         let state = &self.state;
         Ok(match query {
             "world_to_tile" => {

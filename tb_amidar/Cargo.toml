@@ -16,3 +16,6 @@ schemars = "0.6"
 [dependencies.toybox-core]
 version = "*"
 path = "../core"
+
+[dependencies.access-json]
+path = "../../access-json"
