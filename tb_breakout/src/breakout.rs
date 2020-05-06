@@ -6,6 +6,7 @@ use toybox_core;
 use toybox_core::graphics::{Color, Drawable};
 use toybox_core::random;
 use toybox_core::{AleAction, Input, QueryError};
+use access_json::JSONQuery;
 
 use serde_json;
 
@@ -647,6 +648,12 @@ where
     }
 
     fn query_json(&self, query: &str, args: &serde_json::Value) -> Result<String, QueryError> {
+        if let Ok(parsed) = JSONQuery::parse(query) {
+            if let Ok(Some(found)) = parsed.execute(&self) {
+                return Ok(serde_json::to_string(&found)?);
+            }
+        }
+
         let config = &self.config;
         let state = &self.state;
         Ok(match query {

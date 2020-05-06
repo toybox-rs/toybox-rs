@@ -4,6 +4,7 @@ use super::types::*;
 use crate::firing_ai::{enemy_fire_lasers, FiringAI};
 use itertools::Itertools;
 use serde_json;
+use access_json::JSONQuery;
 use toybox_core::collision::Rect;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData, SpriteData};
 use toybox_core::random;
@@ -1123,6 +1124,12 @@ where
     }
 
     fn query_json(&self, query: &str, _args: &serde_json::Value) -> Result<String, QueryError> {
+        if let Ok(parsed) = JSONQuery::parse(query) {
+            if let Ok(Some(found)) = parsed.execute(&self) {
+                return Ok(serde_json::to_string(&found)?);
+            }
+        }
+
         let _config = &self.config;
         let state = &self.state;
         Ok(match query {
