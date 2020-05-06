@@ -1,12 +1,12 @@
 use super::font::{draw_lives, draw_score, DIGIT_WIDTH};
 use crate::Body2D;
 use crate::Vec2D;
+use access_json::JSONQuery;
 use ordered_float::NotNan;
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable};
 use toybox_core::random;
 use toybox_core::{AleAction, Input, QueryError};
-use access_json::JSONQuery;
 
 use serde_json;
 
