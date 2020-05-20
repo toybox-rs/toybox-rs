@@ -1,5 +1,6 @@
 use crate::types::*;
 use crate::{Body2D, Vec2D};
+use toybox_core::collision::Rect;
 use toybox_core::{
     graphics::{Color, Drawable},
     AleAction,
@@ -30,8 +31,8 @@ impl Default for PongConfig {
             bg_color: Color::rgb(144, 72, 17),
             ball_color: Color::rgb(236, 236, 236),
             frame_color: Color::rgb(236, 236, 236),
-            ball_speed: 4.0,
-            paddle_speed: 3.0,
+            // 4 feels right compared to human_play_ale.
+            paddle_speed: 4.0,
             game_points: 21,
         }
     }
@@ -45,6 +46,7 @@ impl toybox_core::Simulation for PongConfig {
         let (ball_sx, ball_sy) = screen::BALL_START_POSITION;
         let (ball_dx, ball_dy) = screen::BALL_START_VELOCITY;
         let state = FrameState {
+            reset: true,
             p1_score: 0,
             p2_score: 0,
             ball: Body2D::new_detailed(
@@ -59,7 +61,8 @@ impl toybox_core::Simulation for PongConfig {
             ),
             p2_paddle: Body2D::new_pos(
                 screen::P2_START_POSITION.0 as f64,
-                screen::P2_START_POSITION.1 as f64,
+                // start off-screen
+                -100.0,
             ),
         };
         Box::new(State {
@@ -120,11 +123,100 @@ impl toybox_core::State for State {
         0
     }
     fn update_mut(&mut self, buttons: toybox_core::Input) {
+        if self.state.reset {
+            // reset enemy paddle.
+            self.state.p2_paddle.position.y = screen::P2_START_POSITION.1 as f64;
+            // re-launch ball:
+            self.state.ball.position.x = screen::BALL_START_POSITION.0 as f64;
+            self.state.ball.position.y = screen::BALL_START_POSITION.1 as f64;
+            // reset velocity
+            self.state.ball.velocity.x = screen::BALL_START_VELOCITY.0 as f64;
+            self.state.ball.velocity.y = screen::BALL_START_VELOCITY.1 as f64;
+            // don't keep doing this!
+            self.state.reset = false;
+        }
         if buttons.left {
             self.state.p1_paddle.position.y += self.config.paddle_speed;
         } else if buttons.right {
             self.state.p1_paddle.position.y -= self.config.paddle_speed;
         }
+        let ball_x = self.state.ball.position.x;
+        let ball_y = self.state.ball.position.y;
+        let ball_dx = self.state.ball.velocity.x;
+        let ball_dy = self.state.ball.velocity.y;
+        let p1_y = self.state.p1_paddle.position.y;
+        let p2_y = self.state.p2_paddle.position.y;
+
+        if ball_x < 0.0 {
+            self.state.p1_score += 1;
+            self.state.reset = true;
+            return;
+        } else if ball_x >= screen::GAME_SIZE.1 as f64 {
+            self.state.p2_score += 1;
+            self.state.reset = true;
+            return;
+        }
+
+        // P2 AI:
+        // AI clearly tries to hit ball in same spot of paddle each time:
+        // roughly the size of the ball down from the top.
+        let target = screen::BALL_SHAPE.1 as f64;
+        let dest = ball_y - target;
+        let speed = self.config.paddle_speed;
+        // move towards ball constantly, limited by ball-speed.
+        if (p2_y - dest).abs() <= speed {
+            self.state.p2_paddle.position.y = dest;
+        } else if p2_y < dest {
+            self.state.p2_paddle.position.y += speed;
+        } else {
+            self.state.p2_paddle.position.y -= speed;
+        }
+
+        let ball = Rect::new(
+            self.state.ball.position.x as i32,
+            self.state.ball.position.y as i32,
+            screen::BALL_SHAPE.0,
+            screen::BALL_SHAPE.1,
+        );
+        let p1 = Rect::new(
+            self.state.p1_paddle.position.x as i32,
+            self.state.p1_paddle.position.y as i32,
+            screen::PADDLE_SHAPE.0,
+            screen::PADDLE_SHAPE.1,
+        );
+        let p2 = Rect::new(
+            self.state.p2_paddle.position.x as i32,
+            self.state.p2_paddle.position.y as i32,
+            screen::PADDLE_SHAPE.0,
+            screen::PADDLE_SHAPE.1,
+        );
+
+        // Now check bouncing.
+        if ball_dx < 0.0 {
+            // compare to p2
+            if ball.intersects(&p2) {
+                self.state.ball.velocity.x *= -1.0;
+            }
+        } else {
+            // compare to p1
+            if ball.intersects(&p1) {
+                self.state.ball.velocity.x *= -1.0;
+            }
+        }
+
+        // check floor/ceiling bounce:
+        if ball_dy < 0.0 {
+            // ceiling:
+            if ball_y < (screen::TOP_FRAME_Y + screen::TOP_FRAME_H) as f64 {
+                self.state.ball.velocity.y *= -1.0;
+            }
+        } else {
+            if ball_y > screen::BOTTOM_FRAME_Y as f64 {
+                self.state.ball.velocity.y *= -1.0;
+            }
+        }
+
+        // Update ball:
         self.state.ball.integrate_mut(1.0);
     }
     fn draw(&self) -> Vec<toybox_core::graphics::Drawable> {
@@ -149,14 +241,16 @@ impl toybox_core::State for State {
             screen::BOTTOM_FRAME_H,
         ));
 
-        // ball:
-        output.push(Drawable::rect(
-            self.config.ball_color,
-            self.state.ball.position.x as i32,
-            self.state.ball.position.y as i32,
-            screen::BALL_SHAPE.0,
-            screen::BALL_SHAPE.1,
-        ));
+        if !self.state.reset {
+            // ball:
+            output.push(Drawable::rect(
+                self.config.ball_color,
+                self.state.ball.position.x as i32,
+                self.state.ball.position.y as i32,
+                screen::BALL_SHAPE.0,
+                screen::BALL_SHAPE.1,
+            ));
+        }
 
         // p1:
         output.push(Drawable::rect(

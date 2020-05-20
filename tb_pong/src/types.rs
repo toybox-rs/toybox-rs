@@ -17,8 +17,6 @@ pub struct PongConfig {
     pub p2_color: Color,
     /// Number of points in a game.
     pub game_points: i32,
-    /// Ball speed.
-    pub ball_speed: f64,
     /// Paddle speed.
     pub paddle_speed: f64,
 }
@@ -26,6 +24,8 @@ pub struct PongConfig {
 /// This represents the per-frame snapshot of mutable state in a Pong game.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct FrameState {
+    /// Are we about to reset the ball?
+    pub reset: bool,
     /// How many points has the player earned?
     pub p1_score: i32,
     /// How many points has the opponent/AI earned?
