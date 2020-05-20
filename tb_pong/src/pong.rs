@@ -20,7 +20,11 @@ mod screen {
     pub const P2_START_POSITION: (i32, i32) = (16, 116);
     pub const BALL_START_POSITION: (i32, i32) = (78, 116);
     pub const BALL_SHAPE: (i32, i32) = (2, 4);
-    pub const BALL_START_VELOCITY: (i32, i32) = (-2, 1);
+    pub const BALL_START_VELOCITY: (i32, i32) = (-3, 1);
+
+    // ball reflections:
+    pub const BALL_ANGLE_MIN: f64 = 30.0;
+    pub const BALL_ANGLE_RANGE: f64 = 120.0;
 }
 
 impl Default for PongConfig {
@@ -31,8 +35,8 @@ impl Default for PongConfig {
             bg_color: Color::rgb(144, 72, 17),
             ball_color: Color::rgb(236, 236, 236),
             frame_color: Color::rgb(236, 236, 236),
-            // 4 feels right compared to human_play_ale.
-            paddle_speed: 4.0,
+            paddle_speed: 2.0,
+            max_paddle_speed: 6.0,
             game_points: 21,
         }
     }
@@ -110,6 +114,63 @@ impl toybox_core::Simulation for PongConfig {
     }
 }
 
+/// Trying to base this on our Breakout implementation, but turned sideways.
+fn reflect_ball(ball: &mut Body2D, paddle: &Body2D) {
+    let paddle_size = screen::PADDLE_SHAPE.1 as f64;
+    let paddle_center_y = paddle.position.y + (paddle_size / 2.0);
+    let ball_center_y: f64 = ball.position.y + (screen::BALL_SHAPE.1 as f64 / 2.0);
+    let relative_y = ball_center_y - paddle_center_y;
+
+    // should be going the opposite direction of the way we're currently going.
+    let expected_y_sign = ball.velocity.y.signum() as i32;
+    let expected_x_sign = -ball.velocity.x.signum() as i32;
+
+    // get normalized location of ball hit along paddle
+    let norm_y = relative_y / (paddle_size / 2.0);
+    // convert this normalized parameter to the degree of the bounce angle
+    let bounce_angle = norm_y * 60.0;
+
+    // the breakout equation:
+    let velocity = Vec2D::from_polar(ball.velocity.magnitude(), bounce_angle.to_radians());
+    // calculations use non-graphics polar orientation
+    // to quickly fix, we reflect over the x-axis
+    let mut velocity = Vec2D::new(velocity.x, -velocity.y);
+    if velocity.y.signum() as i32 != expected_y_sign {
+        velocity.y *= -1.0;
+    }
+    if velocity.x.signum() as i32 != expected_x_sign {
+        velocity.x *= -1.0;
+    }
+    // try this?
+    ball.velocity = velocity;
+}
+
+/// Make this a separate method in case we want to support 2p someday.
+fn paddle_momentum(paddle: &mut Body2D, max_speed: f64, buttons: &toybox_core::Input) {
+    if buttons.left {
+        if paddle.velocity.y < max_speed {
+            paddle.velocity.y += 0.5;
+        }
+    } else if buttons.right {
+        if paddle.velocity.y > -max_speed {
+            paddle.velocity.y -= 0.5;
+        }
+    } else {
+        // slow down:
+        paddle.velocity.y *= 0.7;
+    }
+    paddle.integrate_mut(1.0);
+
+    let paddle_center = paddle.position.y + (screen::PADDLE_SHAPE.1 as f64) / 2.0;
+    let top = (screen::TOP_FRAME_Y + screen::TOP_FRAME_H) as f64;
+    let bottom = (screen::BOTTOM_FRAME_Y) as f64;
+    if paddle_center < top && paddle.velocity.y < 0.0 {
+        paddle.velocity.y = 0.0;
+    } else if paddle_center > bottom && paddle.velocity.y > 0.0 {
+        paddle.velocity.y = 0.0;
+    }
+}
+
 impl toybox_core::State for State {
     fn lives(&self) -> i32 {
         // how many more points can p1 lose?
@@ -135,11 +196,12 @@ impl toybox_core::State for State {
             // don't keep doing this!
             self.state.reset = false;
         }
-        if buttons.left {
-            self.state.p1_paddle.position.y += self.config.paddle_speed;
-        } else if buttons.right {
-            self.state.p1_paddle.position.y -= self.config.paddle_speed;
-        }
+        paddle_momentum(
+            &mut self.state.p1_paddle,
+            self.config.max_paddle_speed,
+            &buttons,
+        );
+
         let ball_x = self.state.ball.position.x;
         let ball_y = self.state.ball.position.y;
         let ball_dx = self.state.ball.velocity.x;
@@ -195,12 +257,12 @@ impl toybox_core::State for State {
         if ball_dx < 0.0 {
             // compare to p2
             if ball.intersects(&p2) {
-                self.state.ball.velocity.x *= -1.0;
+                reflect_ball(&mut self.state.ball, &self.state.p2_paddle);
             }
         } else {
             // compare to p1
             if ball.intersects(&p1) {
-                self.state.ball.velocity.x *= -1.0;
+                reflect_ball(&mut self.state.ball, &self.state.p1_paddle);
             }
         }
 
@@ -222,24 +284,6 @@ impl toybox_core::State for State {
     fn draw(&self) -> Vec<toybox_core::graphics::Drawable> {
         let mut output = Vec::new();
         output.push(Drawable::Clear(self.config.bg_color));
-
-        // frame top:
-        output.push(Drawable::rect(
-            self.config.frame_color,
-            0,
-            screen::TOP_FRAME_Y,
-            screen::GAME_SIZE.0,
-            screen::TOP_FRAME_H,
-        ));
-
-        // frame bottom:
-        output.push(Drawable::rect(
-            self.config.frame_color,
-            0,
-            screen::BOTTOM_FRAME_Y,
-            screen::GAME_SIZE.0,
-            screen::BOTTOM_FRAME_H,
-        ));
 
         if !self.state.reset {
             // ball:
@@ -268,6 +312,24 @@ impl toybox_core::State for State {
             self.state.p2_paddle.position.y as i32,
             screen::PADDLE_SHAPE.0,
             screen::PADDLE_SHAPE.1,
+        ));
+
+        // frame top:
+        output.push(Drawable::rect(
+            self.config.frame_color,
+            0,
+            screen::TOP_FRAME_Y,
+            screen::GAME_SIZE.0,
+            screen::TOP_FRAME_H,
+        ));
+
+        // frame bottom:
+        output.push(Drawable::rect(
+            self.config.frame_color,
+            0,
+            screen::BOTTOM_FRAME_Y,
+            screen::GAME_SIZE.0,
+            screen::BOTTOM_FRAME_H,
         ));
 
         output

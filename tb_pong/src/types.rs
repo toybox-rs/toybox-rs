@@ -19,6 +19,8 @@ pub struct PongConfig {
     pub game_points: i32,
     /// Paddle speed.
     pub paddle_speed: f64,
+    /// Maximum paddle_speed:
+    pub max_paddle_speed: f64,
 }
 
 /// This represents the per-frame snapshot of mutable state in a Pong game.
