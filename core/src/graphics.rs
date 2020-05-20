@@ -67,6 +67,52 @@ impl<'a> From<&'a (u8, u8, u8)> for Color {
 }
 
 #[derive(PartialEq, Eq, Clone)]
+pub struct BitmapSpriteData {
+    pub data: Arc<Vec<Vec<bool>>>,
+}
+impl BitmapSpriteData {
+    pub fn new(data: Vec<Vec<bool>>) -> BitmapSpriteData {
+        BitmapSpriteData {
+            data: Arc::new(data),
+        }
+    }
+    /// Parse a number from number_sprites.txt into a SpriteData.
+    pub fn load(data: &[&str], set: char) -> Self {
+        let mut pixels: Vec<Vec<bool>> = Vec::new();
+        for line in data {
+            let mut pixel_row = Vec::new();
+            for ch in line.chars() {
+                pixel_row.push(ch == set);
+            }
+            pixels.push(pixel_row);
+        }
+        let width = pixels[0].len();
+        debug_assert!(pixels.iter().all(|row| row.len() == width));
+        Self::new(pixels)
+    }
+    pub fn width(&self) -> i32 {
+        self.data[0].len() as i32
+    }
+    pub fn height(&self) -> i32 {
+        self.data.len() as i32
+    }
+    pub fn scaled(&self, scale: usize) -> BitmapSpriteData {
+        let mut output = Vec::with_capacity(self.data.len() * scale);
+        for row in self.data.iter() {
+            let mut scaled_row = Vec::with_capacity(row.len() * scale);
+            for pixel in row.iter() {
+                scaled_row.extend((0..scale).map(|_| *pixel));
+            }
+            for _ in 0..scale {
+                output.push(scaled_row.clone());
+            }
+        }
+
+        BitmapSpriteData::new(output)
+    }
+}
+
+#[derive(PartialEq, Eq, Clone)]
 pub struct FixedSpriteData {
     pub data: Arc<Vec<Vec<Color>>>,
     // TODO: cache grayscale and rgba renders as Arc<Option<Vec<u8>>>?
@@ -187,6 +233,13 @@ pub enum Drawable {
         w: i32,
         h: i32,
     },
+    /// Colorized bitmaps; for fonts:
+    ColoredBitmap {
+        x: i32,
+        y: i32,
+        color: Color,
+        data: BitmapSpriteData,
+    },
     /// For space_invaders.
     DestructibleSprite(SpriteData),
     /// For static images.
@@ -263,6 +316,23 @@ impl GrayscaleBuffer {
                         for xi in 0..w {
                             let color = sprite.data[yi as usize][xi as usize];
                             self.set_pixel_alpha(xi + x, yi + y, color)
+                        }
+                    }
+                }
+                &Drawable::ColoredBitmap {
+                    x,
+                    y,
+                    color,
+                    data: ref sprite,
+                } => {
+                    let w = sprite.width();
+                    let h = sprite.height();
+                    let color = color.grayscale_byte();
+                    for yi in 0..h {
+                        for xi in 0..w {
+                            if sprite.data[yi as usize][xi as usize] {
+                                self.set_pixel(x + xi, y + yi, color);
+                            }
                         }
                     }
                 }
@@ -369,6 +439,22 @@ impl ImageBuffer {
                 &Drawable::Rectangle { color, x, y, w, h } => {
                     self.render_rectangle(color, x, y, w, h)
                 }
+                &Drawable::ColoredBitmap {
+                    x,
+                    y,
+                    color,
+                    data: ref sprite,
+                } => {
+                    let w = sprite.width();
+                    let h = sprite.height();
+                    for yi in 0..h {
+                        for xi in 0..w {
+                            if sprite.data[yi as usize][xi as usize] {
+                                self.set_pixel(x + xi, y + yi, color);
+                            }
+                        }
+                    }
+                }
                 &Drawable::StaticSprite {
                     x,
                     y,
@@ -440,6 +526,25 @@ pub fn load_digit_sprites(
     }
     if current.len() > 0 {
         sprites.push(load_sprite(&current, on_color, set, ignore));
+    }
+
+    sprites.into_iter().rev().collect()
+}
+
+/// Parse digit sprites text files, splitting on blank lines.
+pub fn load_bitmap_sprites(data: &str, set: char) -> Vec<BitmapSpriteData> {
+    let mut sprites = Vec::new();
+    let mut current = Vec::new();
+    for line in data.lines() {
+        if line.trim().is_empty() && current.len() > 0 {
+            sprites.push(BitmapSpriteData::load(&current, set));
+            current.clear();
+        } else {
+            current.push(line);
+        }
+    }
+    if current.len() > 0 {
+        sprites.push(BitmapSpriteData::load(&current, set));
     }
 
     sprites.into_iter().rev().collect()

@@ -1,10 +1,19 @@
 use crate::types::*;
 use crate::{Body2D, Vec2D};
 use toybox_core::collision::Rect;
+use toybox_core::graphics::{load_bitmap_sprites, BitmapSpriteData};
 use toybox_core::{
     graphics::{Color, Drawable},
     AleAction,
 };
+
+lazy_static! {
+    static ref FONT_SPRITES: Vec<BitmapSpriteData> =
+        load_bitmap_sprites(include_str!("font.txt"), '1')
+            .into_iter()
+            .map(|ch| ch.scaled(4))
+            .collect();
+}
 
 mod screen {
     pub const GAME_SIZE: (i32, i32) = (160, 210);
@@ -21,10 +30,6 @@ mod screen {
     pub const BALL_START_POSITION: (i32, i32) = (78, 116);
     pub const BALL_SHAPE: (i32, i32) = (2, 4);
     pub const BALL_START_VELOCITY: (i32, i32) = (-3, 1);
-
-    // ball reflections:
-    pub const BALL_ANGLE_MIN: f64 = 30.0;
-    pub const BALL_ANGLE_RANGE: f64 = 120.0;
 }
 
 impl Default for PongConfig {
@@ -206,7 +211,6 @@ impl toybox_core::State for State {
         let ball_y = self.state.ball.position.y;
         let ball_dx = self.state.ball.velocity.x;
         let ball_dy = self.state.ball.velocity.y;
-        let p1_y = self.state.p1_paddle.position.y;
         let p2_y = self.state.p2_paddle.position.y;
 
         if ball_x < 0.0 {
@@ -332,6 +336,21 @@ impl toybox_core::State for State {
             screen::BOTTOM_FRAME_H,
         ));
 
+        draw_number(
+            &mut output,
+            48,
+            1,
+            self.config.p2_color,
+            self.state.p2_score,
+        );
+        draw_number(
+            &mut output,
+            128,
+            1,
+            self.config.p1_color,
+            self.state.p1_score,
+        );
+
         output
     }
     fn to_json(&self) -> String {
@@ -342,9 +361,25 @@ impl toybox_core::State for State {
     }
     fn query_json(
         &self,
-        query: &str,
-        args: &serde_json::Value,
+        _query: &str,
+        _args: &serde_json::Value,
     ) -> Result<String, toybox_core::QueryError> {
         Ok("TODO".to_string())
+    }
+}
+
+fn draw_number(output: &mut Vec<Drawable>, x: i32, y: i32, color: Color, value: i32) {
+    let advance = -20;
+    let display = format!("{}", value);
+    for (i, ch) in display.chars().rev().enumerate() {
+        let digit = (ch as usize) - ('0' as usize);
+        let sprite = &FONT_SPRITES[digit];
+        let x = x + advance * (i as i32) - sprite.width();
+        output.push(Drawable::ColoredBitmap {
+            x,
+            y,
+            color,
+            data: sprite.clone(),
+        })
     }
 }

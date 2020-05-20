@@ -1,5 +1,4 @@
 use crate::Body2D;
-use crate::Vec2D;
 use toybox_core::graphics::Color;
 
 /// This represents the setup needed for a game of Pong.
