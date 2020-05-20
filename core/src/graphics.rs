@@ -221,10 +221,10 @@ impl GrayscaleBuffer {
     }
     #[inline(always)]
     fn set_pixel(&mut self, x: i32, y: i32, color: u8) {
-        let start = (y * self.width) + x;
-        if start < 0 {
+        if x < 0 || y < 0 {
             return;
         }
+        let start = ((y * self.width) + x) as usize;
         let start = start as usize;
         if start >= self.data.len() {
             return;
@@ -303,12 +303,11 @@ impl ImageBuffer {
 
     #[inline(always)]
     fn set_pixel(&mut self, x: i32, y: i32, color: Color) {
-        debug_assert!(color.is_visible());
-        let start = (y * self.width * 4) + (x * 4);
-        if start < 0 {
+        if x < 0 || y < 0 {
             return;
         }
-        let start = start as usize;
+        debug_assert!(color.is_visible());
+        let start = ((y * self.width * 4) + (x * 4)) as usize;
         if start >= self.data.len() {
             return;
         }
