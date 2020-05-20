@@ -14,10 +14,9 @@ extern crate lazy_static;
 extern crate ordered_float;
 extern crate rand;
 
-/// This module contains a 2d body (position, velocity) used in Breakout.
-mod body2d;
-/// This module contains a 2d vector used in Breakout.
-mod vec2d;
+/// Use 2d types shared with tb_pong.
+pub use toybox_core::body2d::Body2D;
+pub use toybox_core::vec2d::Vec2D;
 
 /// This module contains the core logic of the game.
 mod breakout;
@@ -26,6 +25,4 @@ mod font;
 /// This module contains the core data structures used in the game.
 mod types;
 
-pub use crate::body2d::Body2D;
 pub use crate::types::{Breakout, Brick, StartBall, State, StateCore};
-pub use crate::vec2d::Vec2D;

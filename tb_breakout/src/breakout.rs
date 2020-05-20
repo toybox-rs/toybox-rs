@@ -1,6 +1,6 @@
-use super::body2d::Body2D;
 use super::font::{draw_lives, draw_score, DIGIT_WIDTH};
-use super::vec2d::Vec2D;
+use crate::Body2D;
+use crate::Vec2D;
 use ordered_float::NotNan;
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable};
@@ -175,7 +175,7 @@ impl toybox_core::Simulation for Breakout {
         screen::GAME_SIZE
     }
 
-    /// Sync with [ALE Impl](https://github.com/mgbellemare/Arcade-Learning-Environment/blob/master/src/games/supported/Breakout.cpp#L80)
+    /// Sync with [ALE Impl](https://github.com/mgbellemare/Arcade-Learning-Environment/blob/master/src/games/supported/Breakout.cpp#L68)
     /// Note, leaving a call to sort in this impl to remind users that these vecs are ordered!
     fn legal_action_set(&self) -> Vec<AleAction> {
         let mut actions = vec![
