@@ -1,5 +1,5 @@
-use super::body2d::Body2D;
-use super::vec2d::Vec2D;
+use crate::Body2D;
+use crate::Vec2D;
 use schemars::JsonSchema;
 use toybox_core::graphics::Color;
 use toybox_core::random;

@@ -31,7 +31,7 @@ impl Vec2D {
 
     /// The squared magnitude of this vector; cheaper than magnitude if you just want to know which vector is biggest.
     pub fn magnitude_squared(&self) -> f64 {
-        (self.x * self.x + self.y * self.y)
+        self.x * self.x + self.y * self.y
     }
 
     /// Get the angle of this vector in radians.

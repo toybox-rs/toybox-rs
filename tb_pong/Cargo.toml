@@ -1,0 +1,18 @@
+[package]
+name = "pong"
+version = "0.1.0"
+authors = ["John Foley <jjfoley@smith.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+lazy_static = "*"
+schemars = "0.6"
+
+[dependencies.toybox-core]
+version = "*"
+path = "../core"

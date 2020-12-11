@@ -6,9 +6,11 @@ extern crate serde_derive;
 extern crate schemars;
 extern crate png;
 
+pub mod body2d;
 pub mod collision;
 pub mod graphics;
 pub mod random;
+pub mod vec2d;
 
 mod input;
 pub use crate::input::AleAction;
