@@ -11,6 +11,9 @@ Rust packages and for Toybox; separately versioned from the main project (i.e., 
 pip install ctoybox
 pip install pygame # optional dependency
 python -m ctoybox.human_play amidar
+
+# play the game, and watch the position of enemy 2 (index starts at zero):
+python3 -m ctoybox.human_play amidar --query='.state.enemies[2].position.y'
 ```
 
 ## More getting started help:
