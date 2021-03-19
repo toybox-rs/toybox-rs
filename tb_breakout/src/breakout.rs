@@ -1,6 +1,7 @@
 use super::font::{draw_lives, draw_score, DIGIT_WIDTH};
 use crate::Body2D;
 use crate::Vec2D;
+use access_json::JSONQuery;
 use ordered_float::NotNan;
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable};
@@ -647,6 +648,12 @@ where
     }
 
     fn query_json(&self, query: &str, args: &serde_json::Value) -> Result<String, QueryError> {
+        if let Ok(parsed) = JSONQuery::parse(query) {
+            if let Ok(Some(found)) = parsed.execute(&self) {
+                return Ok(serde_json::to_string(&found)?);
+            }
+        }
+
         let config = &self.config;
         let state = &self.state;
         Ok(match query {

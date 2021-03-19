@@ -67,6 +67,16 @@ class TestNoCrash(unittest.TestCase):
             config = tb.config_to_json()
             state = tb.state_to_json()
 
+class TestNewQueries(unittest.TestCase):
+    def test_amidar(self):
+        with Toybox("amidar") as tb:
+            state = tb.state_to_json()
+            self.assertEqual(1, tb.query_state_json('.state.level'))
+            self.assertEqual(0, tb.query_state_json(".state.score"))
+            self.assertEqual(4, tb.query_state_json(".state.jumps"))
+            self.assertEqual(state['enemies'][3]['position']['x'], tb.query_state_json(".state.enemies[3].position.x"))
+            self.assertEqual(state['enemies'][2]['position']['y'], tb.query_state_json(".state.enemies[2].position.y"))
+            print(tb.query_state_json(".state.enemies[2].position.y"))
 
 if __name__ == "__main__":
     unittest.main()
