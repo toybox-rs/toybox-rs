@@ -67,3 +67,9 @@ A pre-commit hook will ensure that your code is always properly formatted. To do
 `git config core.hooksPath .githooks`
 
 from the top-level directory. This will ensure that your files are formatted properly pior to committing.
+
+## Release Instructions
+
+1. Submit a pull request with the version number in ``ctoybox/Cargo.toml`` -> this is version shown on PyPI.
+2. Remember that any change to internal representations is a public API change and requires a major version. Before 1.0, it's OK to use the second number for this, i.e., 0.3.0 -> 0.4.0, afterwards we will need to use the major version 1.3.1 -> 2.0.0, because semver.
+3. When merged, create a "Release" through Github's graphical API whose name corresponds to the version number.
