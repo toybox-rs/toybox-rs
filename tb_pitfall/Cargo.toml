@@ -1,0 +1,18 @@
+[package]
+name = "pitfall"
+version = "0.1.0"
+authors = ["Emma Tosch <Emma.Tosch@uvm.edu>"]
+edition = "2020"
+publish = false
+
+[dependencies]
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+lazy_static = "*"
+rand = { version = "0.6.3", default-features = false, features=["std"] }
+schemars = "0.6"
+
+[dependencies.toybox-core]
+version = "*"
+path = "../core"

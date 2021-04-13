@@ -13,4 +13,5 @@ members = [
   "tb_spaceinvaders",
   "tb_pong",
   "bench_games",
+  "newgame"
 ]
