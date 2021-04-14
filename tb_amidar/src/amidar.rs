@@ -3,11 +3,11 @@ use crate::types::*;
 use access_json::JSONQuery;
 use serde_json;
 use std::collections::{HashSet, VecDeque};
+use std::sync::{Arc, Mutex};
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData};
 use toybox_core::random;
 use toybox_core::{AleAction, Direction, Input, QueryError};
-use std::sync::{Arc, Mutex};
 
 use rand::seq::SliceRandom;
 

@@ -97,7 +97,7 @@ pub trait Simulation {
 
 pub struct SimFlag {
     pub name: String,
-    pub simulation: Arc<Mutex<dyn Simulation>>
+    pub simulation: Arc<Mutex<dyn Simulation>>,
 }
 
 impl SimFlag {

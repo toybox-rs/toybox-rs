@@ -78,7 +78,8 @@ pub extern "C" fn simulator_is_legal_action(ptr: *mut WrapSimulator, action: i32
 #[no_mangle]
 pub extern "C" fn simulator_actions(ptr: *mut WrapSimulator) -> *const c_void {
     let actions: Vec<i32> = get_simulator(ptr)
-        .lock().unwrap()
+        .lock()
+        .unwrap()
         .legal_action_set()
         .into_iter()
         .map(|a| a.to_int())
@@ -252,7 +253,10 @@ pub extern "C" fn state_from_json(
 ) -> *const FFIResult {
     let state: Result<WrapState, _> = (|| {
         let sim = get_simulator(ptr);
-        let state = sim.lock().unwrap().new_state_from_json(accept_str("state_json_str", json_str)?)?;
+        let state = sim
+            .lock()
+            .unwrap()
+            .new_state_from_json(accept_str("state_json_str", json_str)?)?;
         Ok(WrapState { state })
     })();
     result_to_ffi(state)
@@ -266,7 +270,7 @@ pub extern "C" fn simulator_from_json(
     let sim: Result<WrapSimulator, _> = (|| {
         let json_str = accept_str("config_json_str", json_str)?;
         let new_sim = get_simulator(ptr).lock().unwrap().from_json(json_str)?;
-        Ok(WrapSimulator { simulator: new_sim})
+        Ok(WrapSimulator { simulator: new_sim })
     })();
     result_to_ffi(sim)
 }

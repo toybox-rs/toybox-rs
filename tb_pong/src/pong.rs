@@ -92,8 +92,13 @@ impl toybox_core::Simulation for PongConfig {
     fn to_json(&self) -> String {
         serde_json::to_string(self).unwrap()
     }
-    fn from_json(&self, json: &str) -> Result<Arc<Mutex<dyn toybox_core::Simulation>>, serde_json::Error> {
-        Ok(Arc::new(Mutex::new(serde_json::from_str::<PongConfig>(json)?)))
+    fn from_json(
+        &self,
+        json: &str,
+    ) -> Result<Arc<Mutex<dyn toybox_core::Simulation>>, serde_json::Error> {
+        Ok(Arc::new(Mutex::new(serde_json::from_str::<PongConfig>(
+            json,
+        )?)))
     }
     /// Sync with [ALE Impl](https://github.com/mgbellemare/Arcade-Learning-Environment/blob/master/src/games/supported/Pong.cpp#L47)
     /// Note, leaving a call to sort in this impl to remind users that these vecs are ordered!
