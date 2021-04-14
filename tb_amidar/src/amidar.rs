@@ -7,6 +7,7 @@ use toybox_core;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData};
 use toybox_core::random;
 use toybox_core::{AleAction, Direction, Input, QueryError};
+use std::sync::{Arc, Mutex};
 
 use rand::seq::SliceRandom;
 
@@ -1098,9 +1099,9 @@ impl toybox_core::Simulation for Amidar {
     fn from_json(
         &self,
         json_config: &str,
-    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    ) -> Result<Arc<Mutex<dyn toybox_core::Simulation>>, serde_json::Error> {
         let config: Amidar = serde_json::from_str(json_config)?;
-        Ok(Box::new(config))
+        Ok(Arc::new(Mutex::new(config)))
     }
 
     fn schema_for_config(&self) -> String {
@@ -1520,6 +1521,10 @@ where
     fn copy(&self) -> Box<dyn toybox_core::State> {
         Box::new(self.clone())
     }
+}
+
+inventory::submit! {
+    toybox_core::SimFlag::new(String::from("amidar"), Arc::new(Mutex::new(Amidar::default())))
 }
 
 #[cfg(test)]
