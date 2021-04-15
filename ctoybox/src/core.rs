@@ -7,14 +7,16 @@ use std::boxed::Box;
 use std::error::Error;
 use std::ffi::CString;
 use std::mem;
-use toybox;
+use std::sync::{Arc, Mutex};
+use toybox::{self, Simulation};
 use toybox_core::graphics::{GrayscaleBuffer, ImageBuffer};
 use toybox_core::{AleAction, Input};
 
-fn get_simulator(ptr: *mut WrapSimulator) -> &'static mut dyn toybox::Simulation {
+fn get_simulator(ptr: *mut WrapSimulator) -> Arc<Mutex<dyn Simulation>> {
     assert!(!ptr.is_null());
-    Box::leak(unsafe { Box::from_raw(ptr) }).simulator.as_mut()
+    Box::leak(unsafe { Box::from_raw(ptr) }).simulator.clone()
 }
+
 fn get_state(ptr: *mut WrapState) -> &'static mut dyn toybox::State {
     assert!(!ptr.is_null());
     Box::leak(unsafe { Box::from_raw(ptr) }).state.as_mut()
@@ -54,18 +56,18 @@ pub extern "C" fn simulator_free(ptr: *mut WrapSimulator) -> bool {
 // Reset the simulator RNG to a given seed.
 #[no_mangle]
 pub extern "C" fn simulator_seed(ptr: *mut WrapSimulator, seed: u32) {
-    get_simulator(ptr).reset_seed(seed)
+    get_simulator(ptr).lock().unwrap().reset_seed(seed)
 }
 
 #[no_mangle]
 pub extern "C" fn simulator_to_json(ptr: *mut WrapSimulator) -> *const c_void {
-    let json = get_simulator(ptr).to_json();
+    let json = get_simulator(ptr).lock().unwrap().to_json();
     return_string(&json)
 }
 
 #[no_mangle]
 pub extern "C" fn simulator_is_legal_action(ptr: *mut WrapSimulator, action: i32) -> bool {
-    let actions = get_simulator(ptr).legal_action_set();
+    let actions = get_simulator(ptr).lock().unwrap().legal_action_set();
     if let Some(action) = AleAction::from_int(action) {
         actions.contains(&action)
     } else {
@@ -76,6 +78,8 @@ pub extern "C" fn simulator_is_legal_action(ptr: *mut WrapSimulator, action: i32
 #[no_mangle]
 pub extern "C" fn simulator_actions(ptr: *mut WrapSimulator) -> *const c_void {
     let actions: Vec<i32> = get_simulator(ptr)
+        .lock()
+        .unwrap()
         .legal_action_set()
         .into_iter()
         .map(|a| a.to_int())
@@ -86,18 +90,18 @@ pub extern "C" fn simulator_actions(ptr: *mut WrapSimulator) -> *const c_void {
 
 #[no_mangle]
 pub extern "C" fn simulator_schema_for_state(ptr: *mut WrapSimulator) -> *const c_void {
-    return_string(&get_simulator(ptr).schema_for_state())
+    return_string(&get_simulator(ptr).lock().unwrap().schema_for_state())
 }
 
 #[no_mangle]
 pub extern "C" fn simulator_schema_for_config(ptr: *mut WrapSimulator) -> *const c_void {
-    return_string(&get_simulator(ptr).schema_for_config())
+    return_string(&get_simulator(ptr).lock().unwrap().schema_for_config())
 }
 
 // STATE ALLOC + FREE
 #[no_mangle]
 pub extern "C" fn state_alloc(ptr: *mut WrapSimulator) -> *mut WrapState {
-    let state = get_simulator(ptr).new_game();
+    let state = get_simulator(ptr).lock().unwrap().new_game();
     let boxed_wrapped_state = Box::new(WrapState { state });
     Box::into_raw(boxed_wrapped_state)
 }
@@ -140,13 +144,13 @@ pub extern "C" fn state_query_json(
 // Need this information to initialize the numpy array in python
 #[no_mangle]
 pub extern "C" fn simulator_frame_width(ptr: *mut WrapSimulator) -> i32 {
-    let (w, _) = get_simulator(ptr).game_size();
+    let (w, _) = get_simulator(ptr).lock().unwrap().game_size();
     w
 }
 
 #[no_mangle]
 pub extern "C" fn simulator_frame_height(ptr: *mut WrapSimulator) -> i32 {
-    let (_, h) = get_simulator(ptr).game_size();
+    let (_, h) = get_simulator(ptr).lock().unwrap().game_size();
     h
 }
 
@@ -162,7 +166,7 @@ pub extern "C" fn render_current_frame(
         if numpy_pixels.is_null() {
             return Err("numpy_pixels is null".into());
         }
-        let (w, h) = get_simulator(sim_ptr).game_size();
+        let (w, h) = get_simulator(sim_ptr).lock().unwrap().game_size();
         let state = get_state(state_ptr);
 
         let imgdata = if grayscale {
@@ -249,7 +253,10 @@ pub extern "C" fn state_from_json(
 ) -> *const FFIResult {
     let state: Result<WrapState, _> = (|| {
         let sim = get_simulator(ptr);
-        let state = sim.new_state_from_json(accept_str("state_json_str", json_str)?)?;
+        let state = sim
+            .lock()
+            .unwrap()
+            .new_state_from_json(accept_str("state_json_str", json_str)?)?;
         Ok(WrapState { state })
     })();
     result_to_ffi(state)
@@ -262,7 +269,7 @@ pub extern "C" fn simulator_from_json(
 ) -> *const FFIResult {
     let sim: Result<WrapSimulator, _> = (|| {
         let json_str = accept_str("config_json_str", json_str)?;
-        let new_sim = get_simulator(ptr).from_json(json_str)?;
+        let new_sim = get_simulator(ptr).lock().unwrap().from_json(json_str)?;
         Ok(WrapSimulator { simulator: new_sim })
     })();
     result_to_ffi(sim)

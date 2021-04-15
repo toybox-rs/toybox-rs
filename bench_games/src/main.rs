@@ -11,9 +11,9 @@ fn main() {
     let n_steps = n_steps.parse::<usize>().unwrap();
     let game = &args[1];
     println!("{} for {}.", game, n_steps);
-    let mut sim = toybox::get_simulation_by_name(game).unwrap();
-    let mut state = sim.new_game();
-    let actions = sim.legal_action_set();
+    let sim = toybox::get_simulation_by_name(game).unwrap();
+    let mut state = sim.lock().unwrap().new_game();
+    let actions = sim.lock().unwrap().legal_action_set();
     println!("actions: {:?}", actions);
     let mut scores = Vec::new();
     let mut byte_sum: usize = 0;
@@ -22,9 +22,9 @@ fn main() {
         state.update_mut(action.to_input());
         if state.lives() <= 0 {
             scores.push(state.score());
-            state = sim.new_game();
+            state = sim.lock().unwrap().new_game();
         }
-        let (w, h) = sim.game_size();
+        let (w, h) = sim.lock().unwrap().game_size();
         let mut img = ImageBuffer::alloc(w, h);
         img.render(&state.draw());
 

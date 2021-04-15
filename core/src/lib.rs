@@ -23,6 +23,7 @@ extern crate rand_core;
 
 use std::error::Error;
 use std::fmt;
+use std::sync::{Arc, Mutex};
 
 /// This enum defines failure conditions for a query_json call.
 #[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -83,7 +84,7 @@ pub trait Simulation {
     fn to_json(&self) -> String;
     /// This deserializes the "config" for a game from json.
     /// Generate new state and new config from JSON String.
-    fn from_json(&self, json: &str) -> Result<Box<dyn Simulation>, serde_json::Error>;
+    fn from_json(&self, json: &str) -> Result<Arc<Mutex<dyn Simulation>>, serde_json::Error>;
 
     /// Legal action set:
     fn legal_action_set(&self) -> Vec<AleAction>;
@@ -93,3 +94,16 @@ pub trait Simulation {
     /// Getter for JSON Schema for this game's config.
     fn schema_for_config(&self) -> String;
 }
+
+pub struct SimFlag {
+    pub name: String,
+    pub simulation: Arc<Mutex<dyn Simulation>>,
+}
+
+impl SimFlag {
+    pub fn new(name: String, simulation: Arc<Mutex<dyn Simulation>>) -> Self {
+        SimFlag { name, simulation }
+    }
+}
+
+inventory::collect!(SimFlag);

@@ -5,6 +5,7 @@ use crate::firing_ai::{enemy_fire_lasers, FiringAI};
 use access_json::JSONQuery;
 use itertools::Itertools;
 use serde_json;
+use std::sync::{Arc, Mutex};
 use toybox_core::collision::Rect;
 use toybox_core::graphics::{Color, Drawable, FixedSpriteData, SpriteData};
 use toybox_core::random;
@@ -900,9 +901,9 @@ impl toybox_core::Simulation for SpaceInvaders {
     fn from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    ) -> Result<Arc<Mutex<dyn toybox_core::Simulation>>, serde_json::Error> {
         let config: SpaceInvaders = serde_json::from_str(json_str)?;
-        Ok(Box::new(config))
+        Ok(Arc::new(Mutex::new(config)))
     }
     fn schema_for_config(&self) -> String {
         let schema = schema_for!(SpaceInvaders);
