@@ -11,9 +11,9 @@ pub use toybox_core::Simulation;
 pub use toybox_core::State;
 
 use once_cell::sync::OnceCell;
+static GAME_LIST: OnceCell<Vec<String>> = OnceCell::new();
 
 fn game_list() -> &'static Vec<String> {
-    static GAME_LIST: OnceCell<Vec<String>> = OnceCell::new();
     GAME_LIST.get_or_init(|| {
         (inventory::iter::<SimFlag>())
             .map(|simflag| String::from(String::as_str(&simflag.name)))
@@ -33,4 +33,21 @@ pub fn get_simulation_by_name(name: &str) -> Result<Arc<Mutex<dyn Simulation>>, 
         name,
         game_list()
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_breakout() {
+        let game = get_simulation_by_name("breakout");
+        assert!(game.is_ok())
+    }
+    #[test]
+    fn test_games_list() {
+        let games = game_list();
+        assert!(games.len() > 0);
+    }
+
 }
