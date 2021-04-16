@@ -49,5 +49,4 @@ mod tests {
         let games = game_list();
         assert!(games.len() > 0);
     }
-
 }
