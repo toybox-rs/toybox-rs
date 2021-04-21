@@ -5,7 +5,6 @@ use crate::types::{DiagonalDir, FrameState, GridWorld, State, TileConfig};
 
 use serde_json;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 impl TileConfig {
     fn wall() -> TileConfig {
@@ -224,9 +223,9 @@ impl toybox_core::Simulation for GridWorld {
     fn from_json(
         &self,
         json_str: &str,
-    ) -> Result<Arc<Mutex<dyn toybox_core::Simulation>>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
         let config: GridWorld = serde_json::from_str(json_str)?;
-        Ok(Arc::new(Mutex::new(config)))
+        Ok(Box::new(config))
     }
 
     fn schema_for_config(&self) -> String {
