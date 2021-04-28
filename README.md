@@ -57,7 +57,6 @@ When your changes are ready, make sure you've documented your changes, and submi
 ## Mac Dev Setup Instructions
 * `brew install rustup`
 * `rustup-init` with the default install
-* `cargo install cargo-script`
 * clone this repo
 * `source $HOME/.cargo/env`
 

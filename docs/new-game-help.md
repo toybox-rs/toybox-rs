@@ -2,7 +2,7 @@
 
 ## Initial Setup
 1. Run `cargo new tb_<gamename> --lib` in the top level of the repository. 
-2. Edit the `Cargo.toml` in the [top level of the repository](https://github.com/toybox-rs) to add `tb_<gamename>` to the list of members.
+2. Edit the `Cargo.toml` in the top level of the repository to add `tb_<gamename>` to the list of members.
 3. Create `<gamename>.rs` in `tb_<gamename>/src`.
 4. Create `types.rs` in `tb_<gamename>/src`.
 

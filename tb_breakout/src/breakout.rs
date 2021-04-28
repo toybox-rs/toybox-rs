@@ -3,7 +3,6 @@ use crate::Body2D;
 use crate::Vec2D;
 use access_json::JSONQuery;
 use ordered_float::NotNan;
-use std::sync::{Arc, Mutex};
 use toybox_core;
 use toybox_core::graphics::{Color, Drawable};
 use toybox_core::random;
@@ -259,9 +258,9 @@ impl toybox_core::Simulation for Breakout {
     fn from_json(
         &self,
         json_str: &str,
-    ) -> Result<Arc<Mutex<dyn toybox_core::Simulation>>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
         let config: Breakout = serde_json::from_str(json_str)?;
-        Ok(Arc::new(Mutex::new(config)))
+        Ok(Box::new(config))
     }
 
     fn to_json(&self) -> String {

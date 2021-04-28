@@ -13,13 +13,12 @@ extern crate toybox_core;
 
 mod ffi_result;
 use ffi_result::FFIResult;
-use std::sync::{Arc, Mutex};
 
 /// This struct represents a Simulator that hides rust's "fat" pointer implementation.
 /// This struct is therefore whole as a single c void pointer, but the internals still have a pointer to both the trait and the actual impl.
 #[repr(C)]
 pub struct WrapSimulator {
-    pub simulator: Arc<Mutex<dyn toybox_core::Simulation>>,
+    pub simulator: Box<dyn toybox_core::Simulation>,
 }
 
 /// This struct represents a State that hides rust's "fat" pointer implementation.

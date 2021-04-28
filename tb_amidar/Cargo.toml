@@ -13,7 +13,6 @@ lazy_static = "*"
 rand = { version = "0.6.3", default-features = false, features=["std"] }
 schemars = "0.6"
 access-json = "0.1"
-inventory = "0.1"
 
 [dependencies.toybox-core]
 version = "*"
