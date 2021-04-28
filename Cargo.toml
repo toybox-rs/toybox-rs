@@ -12,5 +12,6 @@ members = [
   "tb_gridworld",
   "tb_spaceinvaders",
   "tb_pong",
-  "bench_games"
+  "bench_games",
+  "newgame"
 ]
