@@ -258,19 +258,37 @@ fn update_newgame_types(dir: String, gamename: String, classname: String) -> Res
 fn update_toybox_lib(dir: String, gamename: String, classname: String) -> Result<(), String> {
     let path = ["toybox", "src", "lib.rs"].join(&std::path::MAIN_SEPARATOR.to_string());
     let game_data: Games = toml::from_str(&read_to_string("Games.toml").unwrap()).unwrap();
+
     let mut gamelist1 = Vec::new();
     let mut gamelist2 = Vec::new();
     let mut gamelist3 = Vec::new();
+
+    gamelist1.push(format!(
+        "#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),\n",
+        game = gamename,
+        class = classname
+    ));
+    gamelist2.push(format!(
+        "#[cfg(feature = \"{game}\")]\n\"{game}\",\n",
+        game = gamename
+    ));
+    gamelist3.push(format!(
+        "/// {class} defined in this module.\n#[cfg(feature = \"{game}\")]\nextern crate {game};\n",
+        game = gamename,
+        class = classname
+    ));
+
     for (old_game, _, old_class) in &game_data.games {
         gamelist1.push(format!("#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),\n",
-            game=gamename, class=classname));
+            game=old_game, class=old_class));
         gamelist2.push(format!(
             "#[cfg(feature = \"{game}\")]\n\"{game}\",\n",
-            game = gamename
+            game = old_game
         ));
         gamelist3.push(format!("/// {class} defined in this module.\n#[cfg(feature = \"{game}\")]\nextern crate {game};\n",
-            game=gamename, class=classname));
+            game=old_game, class=old_class));
     }
+
     let s = include_str!("resources/toybox_lib_template.txt")
         .to_string()
         .replace("$GAMELIST1", gamelist1.join(&"\n".to_string()).as_str())
