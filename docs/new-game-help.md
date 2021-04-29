@@ -1,12 +1,11 @@
 # Developing New Games
 
 ## Initial Setup
-1. Run `cargo new tb_<gamename> --lib` in the top level of the repository. 
-2. Edit the `Cargo.toml` in the top level of the repository to add `tb_<gamename>` to the list of members.
-3. Create `<gamename>.rs` in `tb_<gamename>/src`.
-4. Create `types.rs` in `tb_<gamename>/src`.
+1. Run `cargo run --bin newgame <gamename>` in the top level of the repository. 
+2. Run `cargo build`
+3. Run `cargo fmt`
 
-`tb_<gamename>` should now have three files in it: `lib.rs`, `types.rs`, and `<gamename>.rs`. 
+`tb_<gamename>/src` should now have three files in it: `lib.rs`, `types.rs`, and `<gamename>.rs`. 
 
 ## Basic Game Components
 
@@ -22,7 +21,6 @@ extern crate toybox_core;
 extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
-extern crate ordered_float;
 extern crate rand;
 ```
 

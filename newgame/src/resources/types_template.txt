@@ -8,6 +8,16 @@ pub struct $CLASSNAME {
 
 // Put the rest of the structs for your game here
 
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
+pub struct StateCore {
+    /// How many points have the player earned?
+    pub score: i32,
+    /// How many lives does the player posess?
+    pub lives: i32,
+    /// What is the current level? 1-based.
+    pub level: i32,
+}
+
 /// Wrapping the current game config into one struct with the current frame state.
 #[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct State {

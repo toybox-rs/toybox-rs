@@ -71,10 +71,7 @@ fn add_to_games(game: String, mainclass: String) -> Result<(), String> {
     let mut f = File::create(path.clone()).unwrap();
     match f.write_all(s.as_bytes()) {
         Err(msg) => Err(msg.to_string()),
-        _ => {
-            println!("Added {} to {}", &game, &path);
-            Ok(())
-        }
+        _ => Ok(()),
     }
 }
 
@@ -196,34 +193,16 @@ fn create_project_files(game: String, dir: String) -> Result<(), std::io::Error>
 fn update_newgame_cargo(dir: String, game: String) -> Result<(), String> {
     // First we need to change the package name
     let path = [dir, "Cargo.toml".into()].join(&std::path::MAIN_SEPARATOR.to_string());
-    let mut cargo_toml: TBCargo = toml::from_str(&read_to_string(path.clone()).unwrap()).unwrap();
-    let () = { cargo_toml.package.name = game.clone() };
+    let package_data = read_to_string(path.clone()).unwrap();
+    let mut package_toml: TBCargo = toml::from_str(&package_data).unwrap();
+    package_toml.package.name = game.clone();
+    let mut package_data = toml::to_string(&package_toml).unwrap();
 
-    // Then we need to add universal dependencies
-    let deps = cargo_toml.dependencies.clone();
-    let new_deps = {
-        match deps {
-            Value::Table(mut m) => {
-                // Create content of new table
-                let mut newdeps: toml::value::Map<String, Value> = toml::value::Map::new();
-                newdeps.insert("serde".into(), Value::String("*".into()));
-                newdeps.insert("serde_json".into(), Value::String("*".into()));
-                newdeps.insert("serde_derive".into(), Value::String("*".into()));
-                newdeps.insert("lazy_static".into(), Value::String("*".into()));
-                newdeps.insert("schemars".into(), Value::String("*".into()));
-                m.insert(game.into(), Value::Table(newdeps));
-                Value::Table(m)
-            }
-            _ => return Err(cargo_toml.dependencies.to_string()),
-        }
-    };
-    cargo_toml.dependencies = new_deps;
-
-    // Just tack the tb depdencies on at the end.
-    let s = toml::to_string(&cargo_toml).unwrap()
-        + "[dependencies.toybox-core]\nversion = \"*\"\npath = \"../core\"";
+    // Then we need to serialize and concatenate the dependencies
+    let dep_data: String = include_str!("resources/cargo_deps.txt").to_string();
+    package_data.push_str(&dep_data.as_str());
     let mut f = File::create(path.clone()).unwrap();
-    match f.write_all(s.as_bytes()) {
+    match f.write_all(package_data.as_bytes()) {
         Err(msg) => Err(msg.to_string()),
         _ => Ok(()),
     }
@@ -255,28 +234,13 @@ fn update_newgame_types(dir: String, gamename: String, classname: String) -> Res
     }
 }
 
-fn update_toybox_lib(dir: String, gamename: String, classname: String) -> Result<(), String> {
+fn update_toybox_lib(_dir: String, _gamename: String, _classname: String) -> Result<(), String> {
     let path = ["toybox", "src", "lib.rs"].join(&std::path::MAIN_SEPARATOR.to_string());
     let game_data: Games = toml::from_str(&read_to_string("Games.toml").unwrap()).unwrap();
 
     let mut gamelist1 = Vec::new();
     let mut gamelist2 = Vec::new();
     let mut gamelist3 = Vec::new();
-
-    gamelist1.push(format!(
-        "#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),\n",
-        game = gamename,
-        class = classname
-    ));
-    gamelist2.push(format!(
-        "#[cfg(feature = \"{game}\")]\n\"{game}\",\n",
-        game = gamename
-    ));
-    gamelist3.push(format!(
-        "/// {class} defined in this module.\n#[cfg(feature = \"{game}\")]\nextern crate {game};\n",
-        game = gamename,
-        class = classname
-    ));
 
     for (old_game, _, old_class) in &game_data.games {
         gamelist1.push(format!("#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),\n",
@@ -301,18 +265,32 @@ fn update_toybox_lib(dir: String, gamename: String, classname: String) -> Result
     }
 }
 
+fn update_newgame_default(dir: String, game: String, mainclass: String) -> Result<(), String> {
+    let path: String =
+        [dir, "src".into(), format!("{}.rs", game)].join(&std::path::MAIN_SEPARATOR.to_string());
+    let s = include_str!("resources/newgame_template.txt")
+        .to_string()
+        .replace("$CLASSNAME", &mainclass.as_str());
+    let mut f = File::create(&path).unwrap();
+    match f.write_all(s.as_bytes()) {
+        Err(msg) => Err(msg.to_string()),
+        _ => Ok(()),
+    }
+}
+
 fn populate_files(dir: String, game: String, mainclass: String) -> Result<(), String> {
-    update_newgame_cargo(dir.clone(), game.clone());
-    update_newgame_lib(dir.clone(), game.clone(), mainclass.clone());
-    update_newgame_types(dir.clone(), game.clone(), mainclass.clone());
-    update_toybox_lib(dir.clone(), game.clone(), mainclass.clone());
+    update_newgame_cargo(dir.clone(), game.clone())?;
+    update_newgame_lib(dir.clone(), game.clone(), mainclass.clone())?;
+    update_newgame_types(dir.clone(), game.clone(), mainclass.clone())?;
+    update_newgame_default(dir.clone(), game.clone(), mainclass.clone())?;
+    update_toybox_lib(dir.clone(), game.clone(), mainclass.clone())?;
     Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Do all I/O here
     let mut verbose = false;
-    let mut clear = false;
+    // let mut clear = false;
     let mut game_arg = String::new();
     let () = {
         let mut parser = ArgumentParser::new();
@@ -320,11 +298,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         parser
             .refer(&mut verbose)
             .add_option(&["-v", "--verbose"], StoreTrue, "Be verbose");
-        parser.refer(&mut clear).add_option(
-            &["-c", "--clear"],
-            StoreTrue,
-            "Clears the game locally. WARNING: This deletes files!!",
-        );
+        // parser.refer(&mut clear).add_option(
+        //     &["-c", "--clear"],
+        //     StoreTrue,
+        //     "Clears the game locally. WARNING: This deletes files!!",
+        // );
         parser.refer(&mut game_arg).add_argument(
             "new_game_name",
             Store,
@@ -351,11 +329,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Let the processing begin!
 
-    if clear {
-        println!("Clearing game {}...", g.clone());
-        remove_from_games(game.clone())?;
-        return Ok(());
-    }
+    // if clear {
+    //     println!("Clearing game {}...", g.clone());
+    //     remove_from_games(game.clone())?;
+    //     return Ok(());
+    // }
 
     add_to_games(game.clone(), mainclass.clone())?;
     add_to_workspace(dir.clone())?;
