@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 toml = "*"
 serde = "*"
+argparse = "0.2.2"
+subprocess = "*"
