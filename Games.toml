@@ -1,0 +1,1 @@
+games = [["amidar", "amidar", "Amidar"], ["breakout", "breakout", "Breakout"], ["gridworld", "gridworld", "GridWorld"], ["space_invaders", "space_invaders", "SpaceInvaders"], ["pong", "pong", "PongConfig"]]
