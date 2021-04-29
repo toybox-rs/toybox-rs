@@ -1,2 +1,2 @@
 [workspace]
-members = ["core", "ctoybox", "toybox", "tb_amidar", "tb_breakout", "tb_gridworld", "tb_spaceinvaders", "tb_pong", "bench_games", "newgame", "tb_pool"]
+members = ["core", "ctoybox", "toybox", "tb_amidar", "tb_breakout", "tb_gridworld", "tb_spaceinvaders", "tb_pong", "bench_games", "newgame"]
