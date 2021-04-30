@@ -1,0 +1,17 @@
+[package]
+name = "coffeebot"
+version = "0.1.0"
+authors = ["Kaleigh Clary <kclary@cs.umass.edu>"]
+edition = "2018"
+
+[dependencies]
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+lazy_static = "*"
+rand = { version = "0.6.3", default-features = false, features=["std"] }
+schemars = "0.6"
+
+[dependencies.toybox-core]
+version = "*"
+path = "../core"

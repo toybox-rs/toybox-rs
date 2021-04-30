@@ -1,0 +1,28 @@
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct Coffeebot {
+    // Fill in the high-level fields of your game here
+}
+
+// Put the rest of the structs for your game here
+
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
+pub struct StateCore {
+    /// How many points have the player earned?
+    pub score: i32,
+    /// How many lives does the player posess?
+    pub lives: i32,
+    /// What is the current level? 1-based.
+    pub level: i32,
+}
+
+/// Wrapping the current game config into one struct with the current frame state.
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
+pub struct State {
+    /// The config that generated the original state for this game.
+    pub config: Coffeebot,
+    /// The state that represents the immediately current frame.
+    pub state: StateCore,
+}
