@@ -18,7 +18,7 @@ use argparse::{ArgumentParser, Store, StoreTrue};
 
 #[derive(Deserialize, Clone, Serialize)]
 struct Games {
-    games: Vec<(String, String, String)>,
+    games: Vec<String>,
 }
 #[derive(Deserialize, Clone, Serialize)]
 struct TopCargo {
@@ -49,16 +49,16 @@ struct Features {
     default: Vec<String>,
 }
 
-fn add_to_games(game: String, mainclass: String) -> Result<(), String> {
+fn add_to_games(mainclass: String) -> Result<(), String> {
     // Get the existing game list
     let path = "Games.toml";
     let mut games: Games = toml::from_str(&read_to_string(path.clone()).unwrap()).unwrap();
 
     // See if there are any clashes
     let () = {
-        for (old_game, _, _) in &games.games {
-            if old_game.eq(&game) {
-                return Err(format!("{} already exists", game));
+        for old_game in &games.games {
+            if old_game.to_lowercase().eq(&mainclass.to_lowercase()) {
+                return Err(format!("{} already exists", mainclass));
             }
         }
     };
@@ -66,7 +66,7 @@ fn add_to_games(game: String, mainclass: String) -> Result<(), String> {
     // Add the new game to the game list
     games
         .games
-        .push((game.to_string(), game.to_string(), mainclass.to_string()));
+        .push(mainclass.to_string());
     let s = toml::to_string(&games).unwrap();
     let mut f = File::create(path.clone()).unwrap();
     match f.write_all(s.as_bytes()) {
@@ -82,7 +82,7 @@ fn remove_from_games(game: String) -> Result<(), String> {
     // Remove from game list
     let () = {
         for i in 0..games.games.len() {
-            if games.games[i].0.eq(&game) {
+            if games.games[i].to_lowercase().eq(&game.to_lowercase()) {
                 games.games.remove(i);
                 return Ok(());
             }
@@ -242,7 +242,8 @@ fn update_toybox_lib(_dir: String, _gamename: String, _classname: String) -> Res
     let mut gamelist2 = Vec::new();
     let mut gamelist3 = Vec::new();
 
-    for (old_game, _, old_class) in &game_data.games {
+    for old_class in &game_data.games {
+        let old_game = old_class.to_lowercase();
         gamelist1.push(format!("#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),\n",
             game=old_game, class=old_class));
         gamelist2.push(format!(
@@ -335,7 +336,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //     return Ok(());
     // }
 
-    add_to_games(game.clone(), mainclass.clone())?;
+    add_to_games(mainclass.clone())?;
     add_to_workspace(dir.clone())?;
     create_project_files(game.clone(), dir.clone())?;
     add_to_toybox_cargo(dir.clone(), game.clone())?;
