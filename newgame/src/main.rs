@@ -64,9 +64,7 @@ fn add_to_games(mainclass: String) -> Result<(), String> {
     };
 
     // Add the new game to the game list
-    games
-        .games
-        .push(mainclass.to_string());
+    games.games.push(mainclass.to_string());
     let s = toml::to_string(&games).unwrap();
     let mut f = File::create(path.clone()).unwrap();
     match f.write_all(s.as_bytes()) {
