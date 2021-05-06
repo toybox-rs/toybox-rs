@@ -10,6 +10,9 @@
 All of the work you will now be doing is in the `tb_<gamename>` directory, and mainly in the `lib.rs` file. You can grep through 
 the file for "TODO" to find the methods you will need to implement/customize. 
 
+### Removing a game
+If, for some reason, you want to nuke the game you just created, you remove it with the command: `cargo run --bin newgame <gamename> --clear`.
+
 ## Basic Game Components
 
 __`lib.rs`__
