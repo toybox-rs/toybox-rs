@@ -42,7 +42,7 @@ class TestRandomAgents(unittest.TestCase):
             self._1000_random_actions_are_deterministic(tb)
 
     def test_space_invaders(self):
-        with Toybox("space_invaders") as tb:
+        with Toybox("spaceinvaders") as tb:
             self._1000_random_actions_are_deterministic(tb)
 
     def test_amidar_straight_up(self):
