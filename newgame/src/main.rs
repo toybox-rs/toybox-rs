@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::fs::File;
 use std::fs::{create_dir_all, read_to_string};
+use std::io::BufReader;
 /**
     Steps to creating a new game.
     - get a name, make sure it doesn't clash
@@ -10,6 +10,7 @@ use std::fs::{create_dir_all, read_to_string};
     - re-generate toybox/src/lib.rs
 */
 use std::{error::Error, io::Write};
+use std::{fs::File, io::BufRead};
 use subprocess::{Popen, PopenConfig, Redirection};
 use toml::Value;
 
@@ -73,26 +74,32 @@ fn add_to_games(mainclass: String) -> Result<(), String> {
     }
 }
 
-fn remove_from_games(game: String) -> Result<(), String> {
+fn remove_from_games(mainclass: String) -> Result<(), String> {
     // Get the existing game list
     let path = "Games.toml";
     let mut games: Games = toml::from_str(&read_to_string(path.clone()).unwrap()).unwrap();
     // Remove from game list
-    let () = {
-        for i in 0..games.games.len() {
-            if games.games[i].to_lowercase().eq(&game.to_lowercase()) {
-                games.games.remove(i);
-                return Ok(());
-            }
+    let i = games.games.iter().position(|g| *g == mainclass);
+    let i = match i {
+        Some(i) => i,
+        None => {
+            println!(
+                "Either game {} not found in Games.toml, or already removed.",
+                &mainclass
+            );
+            return Ok(());
         }
-        Err(format!("Game {} not found in Games.toml", &game))
-    }?;
+    };
+    games.games.remove(i);
     // write new file
     let s = toml::to_string(&games).unwrap();
     let mut f: File = File::create(path.clone()).unwrap();
     match f.write_all(s.as_bytes()) {
         Err(msg) => Err(msg.to_string()),
-        _ => Ok(()),
+        _ => {
+            println!("Removed {} from Games.toml", &mainclass);
+            Ok(())
+        }
     }
 }
 
@@ -105,6 +112,30 @@ fn add_to_workspace(dir: String) -> Result<(), String> {
     match f.write_all(s.as_bytes()) {
         Err(msg) => Err(msg.to_string()),
         _ => Ok(()),
+    }
+}
+
+fn remove_from_workspace(dir: String) -> Result<(), String> {
+    // Get the existing Cargo.toml
+    let mut cargo_toml: TopCargo = toml::from_str(&read_to_string("Cargo.toml").unwrap()).unwrap();
+    let index = cargo_toml.workspace.members.iter().position(|d| *d == dir);
+    let index = match index {
+        Some(i) => i,
+        None => {
+            println!("Already removed {} from top level Cargo.toml", dir);
+            return Ok(());
+        }
+    };
+
+    cargo_toml.workspace.members.remove(index);
+    let s = toml::to_string(&cargo_toml).unwrap();
+    let mut f = File::create("Cargo.toml").unwrap();
+    match f.write_all(s.as_bytes()) {
+        Err(msg) => Err(msg.to_string()),
+        _ => {
+            println!("Removed {} from top level Cargo.toml", dir);
+            Ok(())
+        }
     }
 }
 
@@ -128,6 +159,34 @@ fn add_to_dependences(cargo_toml: &mut TBCargo, dir: &String, game: &String) -> 
     Ok(())
 }
 
+fn remove_from_dependences(
+    cargo_toml: &mut TBCargo,
+    dir: &String,
+    game: &String,
+) -> Result<(), String> {
+    let deps = cargo_toml.dependencies.clone();
+    let new_deps = {
+        match deps {
+            Value::Table(mut m) => {
+                if m.contains_key(game.into()) {
+                    m.remove(game.into());
+                    Value::Table(m)
+                } else {
+                    println!(
+                        "Already removed dependencies.{} from toybox/Cargo.toml",
+                        &game
+                    );
+                    return Ok(());
+                }
+            }
+            _ => return Err(cargo_toml.dependencies.to_string()),
+        }
+    };
+    cargo_toml.dependencies = new_deps;
+    println!("Removed dependencies.{} from toybox/Cargo.toml", &game);
+    Ok(())
+}
+
 fn add_to_features(cargo_toml: &mut TBCargo, game: &String) -> Result<(), String> {
     let features = cargo_toml.features.clone();
     let new_features = {
@@ -143,6 +202,33 @@ fn add_to_features(cargo_toml: &mut TBCargo, game: &String) -> Result<(), String
     Ok(())
 }
 
+fn remove_from_features(cargo_toml: &mut TBCargo, game: &String) -> Result<(), String> {
+    let features = cargo_toml.features.clone();
+    let new_features = {
+        match features {
+            Some(mut f) => {
+                let index = f.default.iter().position(|g| g == game);
+                let index = match index {
+                    Some(i) => i,
+                    None => {
+                        println!("Already removed feature {} from toybox/Cargo.toml", &game);
+                        return Ok(());
+                    }
+                };
+                f.default.remove(index);
+                Ok(Some(f))
+            }
+            None => Err("Input does not have a featurse attribute".to_string()),
+        }
+    }?;
+    cargo_toml.features = new_features;
+    println!(
+        "Removed feature dependencies.{} from toybox/Cargo.toml",
+        &game
+    );
+    Ok(())
+}
+
 fn add_to_toybox_cargo(dir: String, game: String) -> Result<(), String> {
     // Can't make a struct because the dependencies table entry requires that
     // we know the key names a priori. We need to add the new game to the
@@ -152,6 +238,20 @@ fn add_to_toybox_cargo(dir: String, game: String) -> Result<(), String> {
     // let mut cargo_toml = read_to_string(&path).unwrap().parse::<Value>().unwrap();
     add_to_dependences(&mut cargo_toml, &dir, &game)?;
     add_to_features(&mut cargo_toml, &game)?;
+    let s = toml::to_string(&cargo_toml).unwrap();
+    let mut f = File::create(&path).unwrap();
+    match f.write_all(s.as_bytes()) {
+        Err(msg) => Err(msg.to_string()),
+        _ => Ok(()),
+    }
+}
+
+fn remove_from_toybox_cargo(dir: String, game: String) -> Result<(), String> {
+    // Load it up
+    let path = ["toybox", "Cargo.toml"].join(&std::path::MAIN_SEPARATOR.to_string());
+    let mut cargo_toml: TBCargo = toml::from_str(&read_to_string(path.clone()).unwrap()).unwrap();
+    remove_from_dependences(&mut cargo_toml, &dir, &game)?;
+    remove_from_features(&mut cargo_toml, &game)?;
     let s = toml::to_string(&cargo_toml).unwrap();
     let mut f = File::create(&path).unwrap();
     match f.write_all(s.as_bytes()) {
@@ -183,6 +283,22 @@ fn create_project_files(game: String, dir: String) -> Result<(), std::io::Error>
                 [dir.clone(), "src".into(), format!("{}.rs", game)]
                     .join(&std::path::MAIN_SEPARATOR.to_string()),
             )?;
+            return Ok(());
+        }
+    }
+}
+
+fn delete_project_files(dir: String) -> Result<(), String> {
+    let mut p = Popen::create(
+        &["rm", "-rf", &*dir],
+        PopenConfig {
+            stdout: Redirection::Pipe,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    loop {
+        if p.poll().is_some() {
             return Ok(());
         }
     }
@@ -242,8 +358,11 @@ fn update_toybox_lib(_dir: String, _gamename: String, _classname: String) -> Res
 
     for old_class in &game_data.games {
         let old_game = old_class.to_lowercase();
-        gamelist1.push(format!("#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),\n",
-            game=old_game, class=old_class));
+        gamelist1.push(format!(
+            "#[cfg(feature = \"{game}\")]\n\"{game}\" => Ok(Box::new({game}::{class}::default())),",
+            game = old_game,
+            class = old_class
+        ));
         gamelist2.push(format!(
             "#[cfg(feature = \"{game}\")]\n\"{game}\",\n",
             game = old_game
@@ -286,10 +405,30 @@ fn populate_files(dir: String, game: String, mainclass: String) -> Result<(), St
     Ok(())
 }
 
+fn remove_from_librs(mainclass: String) -> Result<(), String> {
+    let path = ["toybox", "src", "lib.rs"].join(&std::path::MAIN_SEPARATOR.to_string());
+    let game = mainclass.to_lowercase();
+    let f = File::open(&path).unwrap();
+    let mut s = String::new();
+    let reader = BufReader::new(f);
+    for line in reader.lines() {
+        let line = line.unwrap();
+        if !(line.contains(&game) || line.contains(&mainclass)) {
+            s.push_str(&line);
+            s.push_str("\n");
+        }
+    }
+    let mut f = File::create(&path).unwrap();
+    match &f.write_all(s.to_string().as_bytes()) {
+        Err(msg) => Err(msg.to_string()),
+        _ => Ok(()),
+    }
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     // Do all I/O here
     let mut verbose = false;
-    // let mut clear = false;
+    let mut clear = false;
     let mut game_arg = String::new();
     let () = {
         let mut parser = ArgumentParser::new();
@@ -297,11 +436,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         parser
             .refer(&mut verbose)
             .add_option(&["-v", "--verbose"], StoreTrue, "Be verbose");
-        // parser.refer(&mut clear).add_option(
-        //     &["-c", "--clear"],
-        //     StoreTrue,
-        //     "Clears the game locally. WARNING: This deletes files!!",
-        // );
+        parser.refer(&mut clear).add_option(
+            &["-c", "--clear"],
+            StoreTrue,
+            "Clears the game locally. WARNING: This deletes files!!",
+        );
         parser.refer(&mut game_arg).add_argument(
             "new_game_name",
             Store,
@@ -328,11 +467,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Let the processing begin!
 
-    // if clear {
-    //     println!("Clearing game {}...", g.clone());
-    //     remove_from_games(game.clone())?;
-    //     return Ok(());
-    // }
+    if clear {
+        println!("Clearing game {}...", g.clone());
+        remove_from_games(mainclass.clone())?;
+        remove_from_workspace(dir.clone())?;
+        remove_from_toybox_cargo(dir.clone(), game.clone())?;
+        remove_from_librs(mainclass.clone())?;
+        delete_project_files(dir.clone())?;
+        return Ok(());
+    }
 
     add_to_games(mainclass.clone())?;
     add_to_workspace(dir.clone())?;

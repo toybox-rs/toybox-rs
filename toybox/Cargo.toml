@@ -4,17 +4,34 @@ version = "0.1.0"
 authors = ["John Foley <jfoley@cs.umass.edu>"]
 edition = "2018"
 publish = false
+[dependencies.amidar]
+optional = true
+path = "../tb_amidar"
+version = "*"
 
-[dependencies]
-amidar = {path = "../tb_amidar", version="*", optional=true}
-breakout = {path = "../tb_breakout", version="*", optional = true}
-space_invaders = {path = "../tb_spaceinvaders", version="*", optional = true}
-gridworld = {path = "../tb_gridworld", version = "*", optional = true}
-pong = {path = "../tb_pong", version = "*", optional = true}
+[dependencies.breakout]
+optional = true
+path = "../tb_breakout"
+version = "*"
+
+[dependencies.gridworld]
+optional = true
+path = "../tb_gridworld"
+version = "*"
+
+[dependencies.pong]
+optional = true
+path = "../tb_pong"
+version = "*"
+
+[dependencies.spaceinvaders]
+optional = true
+path = "../tb_spaceinvaders"
+version = "*"
 
 [dependencies.toybox-core]
 path = "../core"
-version="*"
+version = "*"
 
 [features]
-default = ["amidar", "breakout", "space_invaders", "gridworld", "pong"]
+default = ["amidar", "breakout", "spaceinvaders", "gridworld", "pong"]

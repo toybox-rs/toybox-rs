@@ -3,7 +3,7 @@ use toybox_core::graphics::Color;
 
 /// This represents the setup needed for a game of Pong.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-pub struct PongConfig {
+pub struct Pong {
     /// What is the background color of the board? Brownish by default.
     pub bg_color: Color,
     /// The gray area at the top/bottom we refer to as the "frame".
@@ -43,7 +43,7 @@ pub struct FrameState {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct State {
     /// Setup that created this game; effectively immutable here.
-    pub config: PongConfig,
+    pub config: Pong,
     /// All the data known about this frame.
     pub state: FrameState,
 }
