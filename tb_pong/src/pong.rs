@@ -91,7 +91,10 @@ impl toybox_core::Simulation for PongConfig {
     fn to_json(&self) -> String {
         serde_json::to_string(self).unwrap()
     }
-    fn from_json(&self, json: &str) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
+    fn from_json(
+        &self,
+        json: &str,
+    ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         Ok(Box::new(serde_json::from_str::<PongConfig>(json)?))
     }
     /// Sync with [ALE Impl](https://github.com/mgbellemare/Arcade-Learning-Environment/blob/master/src/games/supported/Pong.cpp#L47)
@@ -356,7 +359,7 @@ impl toybox_core::State for State {
     fn to_json(&self) -> String {
         serde_json::to_string(&self.state).expect("Should be no JSON Serialization Errors.")
     }
-    fn copy(&self) -> Box<dyn toybox_core::State> {
+    fn copy(&self) -> Box<dyn toybox_core::State + Send> {
         Box::new(self.clone())
     }
     fn query_json(

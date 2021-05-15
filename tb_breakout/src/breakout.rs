@@ -678,7 +678,7 @@ where
         })
     }
 
-    fn copy(&self) -> Box<dyn toybox_core::State> {
+    fn copy(&self) -> Box<dyn toybox_core::State + Send> {
         Box::new(self.clone())
     }
 }

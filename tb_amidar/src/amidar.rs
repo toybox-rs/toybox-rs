@@ -1517,7 +1517,7 @@ where
             _ => Err(QueryError::NoSuchQuery)?,
         })
     }
-    fn copy(&self) -> Box<dyn toybox_core::State> {
+    fn copy(&self) -> Box<dyn toybox_core::State + Send> {
         Box::new(self.clone())
     }
 }

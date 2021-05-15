@@ -1,6 +1,7 @@
 use pyo3::{
     exceptions::{self, PyValueError},
     prelude::*,
+    types::PyByteArray,
 };
 use toybox::{self, graphics::ImageBuffer, Simulation};
 use toybox_core::AleAction;
@@ -10,12 +11,6 @@ fn py_toybox(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Game>()?;
     m.add_class::<State>()?;
     m.add_class::<Input>()?;
-
-    #[pyfn(m, "sum_as_string")]
-    fn sum_as_string_py(_py: Python, a: i64, b: i64) -> PyResult<String> {
-        let out = format!("{}", a + b);
-        Ok(out)
-    }
 
     Ok(())
 }
@@ -100,7 +95,7 @@ impl Game {
 }
 
 #[pyclass]
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct Input {
     #[pyo3(get, set)]
     pub left: bool,
@@ -132,6 +127,12 @@ struct State {
 
 #[pymethods]
 impl State {
+    fn copy(&self) -> PyResult<Self> {
+        Ok(Self {
+            shape: self.shape.clone(),
+            inner: self.inner.copy(),
+        })
+    }
     fn apply_ale_action(&mut self, action: i32) -> PyResult<bool> {
         if let Some(action) = AleAction::from_int(action) {
             self.inner.as_mut().update_mut(action.to_input());
@@ -140,11 +141,15 @@ impl State {
             Ok(false)
         }
     }
-    fn render(&self) -> PyResult<Vec<u8>> {
+    fn render_into_buffer(&self, buffer: &PyByteArray) -> PyResult<()> {
         let (w, h) = self.shape;
         let mut img = ImageBuffer::alloc(w, h);
         img.render(&self.inner.draw());
-        Ok(img.data)
+        let dest: &mut [u8] = unsafe { buffer.as_bytes_mut() };
+        for (src, dest) in img.data.iter().cloned().zip(dest.iter_mut()) {
+            *dest = src;
+        }
+        Ok(())
     }
     fn apply_action(&mut self, input: &PyCell<Input>) -> PyResult<()> {
         let input: PyRef<Input> = input.borrow();

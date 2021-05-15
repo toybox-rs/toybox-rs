@@ -38,6 +38,7 @@ if __name__ == "__main__":
     FPS = args.fps
 
     quit = False
+    frame = bytearray(w * h * 4)
     while not quit:
         # close human_play on game over
         if state.game_over():
@@ -72,8 +73,8 @@ if __name__ == "__main__":
         if args.query is not None:
             print(args.query, state.query(args.query, args.query_args))
     
-        frame = np.asarray(state.render(), dtype=np.uint8)
-        image = frame.reshape(h, w, 4)[:,:,:3]
+        state.render_into_buffer(frame)
+        image = np.asarray(frame, dtype=np.uint8).reshape(h, w, 4)[:,:,:3]
         screen = pygame.display.get_surface()
         img = pygame.surfarray.make_surface(np.swapaxes(image, 0, 1))
         img2x = pygame.transform.scale(img, dim)
