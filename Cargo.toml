@@ -5,7 +5,6 @@
 # > cargo build -p toybox-core
 members = [
   "core",
-  "ctoybox",
   "toybox",
   "tb_amidar",
   "tb_breakout",
@@ -13,5 +12,7 @@ members = [
   "tb_spaceinvaders",
   "tb_pong",
   "bench_games",
-  "py_toybox",
 ]
+
+# See pyO3#341 -- linker errors during cargo test; workaround doesn't work in a workspace...
+exclude = ['ctoybox'] 
