@@ -51,7 +51,7 @@ impl toybox_core::Simulation for PongConfig {
     fn reset_seed(&mut self, _seed: u32) {
         // No randomness in Pong.
     }
-    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State + Send> {
         let (ball_sx, ball_sy) = screen::BALL_START_POSITION;
         let (ball_dx, ball_dy) = screen::BALL_START_VELOCITY;
         let state = FrameState {
@@ -82,7 +82,7 @@ impl toybox_core::Simulation for PongConfig {
     fn new_state_from_json(
         &self,
         json: &str,
-    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State + Send>, serde_json::Error> {
         Ok(Box::new(serde_json::from_str::<State>(json)?))
     }
     fn game_size(&self) -> (i32, i32) {
@@ -91,7 +91,7 @@ impl toybox_core::Simulation for PongConfig {
     fn to_json(&self) -> String {
         serde_json::to_string(self).unwrap()
     }
-    fn from_json(&self, json: &str) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    fn from_json(&self, json: &str) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         Ok(Box::new(serde_json::from_str::<PongConfig>(json)?))
     }
     /// Sync with [ALE Impl](https://github.com/mgbellemare/Arcade-Learning-Environment/blob/master/src/games/supported/Pong.cpp#L47)

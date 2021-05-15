@@ -69,7 +69,7 @@ mod screen {
     pub const FIELD_WIDTH: i32 = 216;
     pub const BRICK_HEIGHT: i32 = 4;
     pub const BRICK_WIDTH: i32 = 12;
-    pub const BRICKS_ACROSS: i32 = (FIELD_WIDTH / BRICK_WIDTH);
+    pub const BRICKS_ACROSS: i32 = FIELD_WIDTH / BRICK_WIDTH;
 
     pub const PADDLE_START_Y: i32 = FRAME_TO_PADDLE + BOARD_TOP_Y;
     pub const PADDLE_START_SIZE: (i32, i32) = (24, 3);
@@ -190,7 +190,7 @@ impl toybox_core::Simulation for Breakout {
     }
 
     /// Create a new game of breakout.
-    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State + Send> {
         let mut bricks = Vec::new();
 
         let offset = Vec2D::new(
@@ -247,7 +247,7 @@ impl toybox_core::Simulation for Breakout {
     fn new_state_from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State + Send>, serde_json::Error> {
         let state: StateCore = serde_json::from_str(json_str)?;
         Ok(Box::new(State {
             config: self.clone(),
@@ -258,7 +258,7 @@ impl toybox_core::Simulation for Breakout {
     fn from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         let config: Breakout = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }

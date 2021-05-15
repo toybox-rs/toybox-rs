@@ -1059,7 +1059,7 @@ impl toybox_core::Simulation for Amidar {
     fn game_size(&self) -> (i32, i32) {
         screen::GAME_SIZE
     }
-    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State + Send> {
         Box::new(State::try_new(self).expect("new_game should succeed."))
     }
     fn to_json(&self) -> String {
@@ -1087,7 +1087,7 @@ impl toybox_core::Simulation for Amidar {
     fn new_state_from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State + Send>, serde_json::Error> {
         let state: StateCore = serde_json::from_str(json_str)?;
         Ok(Box::new(State {
             config: self.clone(),
@@ -1098,7 +1098,7 @@ impl toybox_core::Simulation for Amidar {
     fn from_json(
         &self,
         json_config: &str,
-    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         let config: Amidar = serde_json::from_str(json_config)?;
         Ok(Box::new(config))
     }

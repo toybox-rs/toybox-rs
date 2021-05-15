@@ -1,4 +1,5 @@
 from .ffi import Toybox, Input
+import pygame._numpysurfarray as numpysf
 
 import numpy as np
 import argparse
@@ -79,6 +80,7 @@ if __name__ == "__main__":
             image = tb.get_rgb_frame()
             screen = pygame.display.get_surface()
             img = pygame.surfarray.make_surface(np.swapaxes(image, 0, 1))
+            numpysf.make_surface()
             img2x = pygame.transform.scale(img, dim)
             screen.blit(img2x, dest=(0, 0))
             pygame.display.update()

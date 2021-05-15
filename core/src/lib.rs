@@ -72,9 +72,9 @@ pub trait Simulation {
     fn reset_seed(&mut self, seed: u32);
 
     /// Generate a new State. This is in a Box<State> because it may be 1 of many unknown types as far as calling code is concerned.
-    fn new_game(&mut self) -> Box<dyn State>;
+    fn new_game(&mut self) -> Box<dyn State + Send>;
     /// Generate a new State from JSON String (usually modified from a dump of State::to_json).
-    fn new_state_from_json(&self, json: &str) -> Result<Box<dyn State>, serde_json::Error>;
+    fn new_state_from_json(&self, json: &str) -> Result<Box<dyn State + Send>, serde_json::Error>;
 
     /// Return a tuple of game size in pixels, e.g., (100,100).
     fn game_size(&self) -> (i32, i32);
@@ -83,7 +83,7 @@ pub trait Simulation {
     fn to_json(&self) -> String;
     /// This deserializes the "config" for a game from json.
     /// Generate new state and new config from JSON String.
-    fn from_json(&self, json: &str) -> Result<Box<dyn Simulation>, serde_json::Error>;
+    fn from_json(&self, json: &str) -> Result<Box<dyn Simulation + Send>, serde_json::Error>;
 
     /// Legal action set:
     fn legal_action_set(&self) -> Vec<AleAction>;
