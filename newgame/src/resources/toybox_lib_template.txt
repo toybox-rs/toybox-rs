@@ -1,0 +1,26 @@
+extern crate toybox_core;
+
+pub use toybox_core::graphics;
+pub use toybox_core::random;
+/// Input represents the buttons pressed given to our games.
+pub use toybox_core::Input;
+pub use toybox_core::Simulation;
+pub use toybox_core::State;
+
+/// This method returns a Box<Simulation> if possible for a given game name.
+pub fn get_simulation_by_name(name: &str) -> Result<Box<dyn Simulation>, String> {
+    match name.to_lowercase().as_str() {
+        $GAMELIST1
+        _ => Err(format!(
+            "Cannot construct game: `{}`. Try any of {:?}.",
+            name, GAME_LIST
+        )),
+    }
+}
+
+/// This defines the set of games that are known. An index into this array is used in human_play, so try not to shuffle them!
+pub const GAME_LIST: &[&str] = &[
+    $GAMELIST2
+];
+
+$GAMELIST3

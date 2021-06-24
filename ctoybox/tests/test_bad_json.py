@@ -29,7 +29,7 @@ class TestRandomAgents(unittest.TestCase):
             self._bad_json_is_recoverable(tb)
 
     def test_space_invaders(self):
-        with Toybox("space_invaders") as tb:
+        with Toybox("spaceinvaders") as tb:
             self._bad_json_is_recoverable(tb)
 
 if __name__ == "__main__":

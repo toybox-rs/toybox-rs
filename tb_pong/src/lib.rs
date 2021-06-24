@@ -8,7 +8,7 @@ extern crate lazy_static;
 pub mod pong;
 pub mod types;
 
-pub use types::PongConfig;
+pub use types::Pong;
 
 /// Use 2d types shared with tb_breakout.
 pub use toybox_core::body2d::Body2D;

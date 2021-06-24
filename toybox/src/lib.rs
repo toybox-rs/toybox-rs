@@ -16,10 +16,10 @@ pub fn get_simulation_by_name(name: &str) -> Result<Box<dyn Simulation>, String>
         "breakout" => Ok(Box::new(breakout::Breakout::default())),
         #[cfg(feature = "gridworld")]
         "gridworld" => Ok(Box::new(gridworld::GridWorld::default())),
-        #[cfg(feature = "space_invaders")]
-        "space_invaders" => Ok(Box::new(space_invaders::SpaceInvaders::default())),
-        #[cfg(feature = "pong")]
-        "pong" => Ok(Box::new(pong::PongConfig::default())),
+        #[cfg(feature = "spaceinvaders")]
+        "spaceinvaders" => Ok(Box::new(spaceinvaders::SpaceInvaders::default())),
+        #[cfg(feature = "pongconfig")]
+        "pongconfig" => Ok(Box::new(pongconfig::PongConfig::default())),
         _ => Err(format!(
             "Cannot construct game: `{}`. Try any of {:?}.",
             name, GAME_LIST
@@ -33,26 +33,30 @@ pub const GAME_LIST: &[&str] = &[
     "amidar",
     #[cfg(feature = "breakout")]
     "breakout",
-    #[cfg(feature = "space_invaders")]
-    "space_invaders",
-    #[cfg(feature = "pong")]
-    "pong",
     #[cfg(feature = "gridworld")]
     "gridworld",
+    #[cfg(feature = "spaceinvaders")]
+    "spaceinvaders",
+    #[cfg(feature = "pongconfig")]
+    "pongconfig",
 ];
 
 /// Amidar defined in this module.
 #[cfg(feature = "amidar")]
 extern crate amidar;
+
 /// Breakout defined in this module.
 #[cfg(feature = "breakout")]
 extern crate breakout;
-/// Gridworld
+
+/// GridWorld defined in this module.
 #[cfg(feature = "gridworld")]
 extern crate gridworld;
-/// Pong defined in this module.
-#[cfg(feature = "pong")]
-extern crate pong;
-/// Space Invaders logic defined in this module.
-#[cfg(feature = "space_invaders")]
-extern crate space_invaders;
+
+/// SpaceInvaders defined in this module.
+#[cfg(feature = "spaceinvaders")]
+extern crate spaceinvaders;
+
+/// PongConfig defined in this module.
+#[cfg(feature = "pongconfig")]
+extern crate pongconfig;

@@ -39,6 +39,8 @@ If you use this code, or otherwise are inspired by our white-box testing approac
 
 ## How do I edit, develop & test?
 
+For instructions on creating new games in rust, see [this](docs/new-game-help.md).
+
 1. Edit the rust or python code.
 2. Create a virtualenv for your modified ctoybox.
 3. Compile and install locally to the virtualenv. ``cd ctoybox && ./test.sh``
