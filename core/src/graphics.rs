@@ -123,6 +123,14 @@ impl FixedSpriteData {
             data: Arc::new(data),
         }
     }
+    pub fn flip_x(&self) -> FixedSpriteData {
+        let flipped: Vec<Vec<Color>> = self
+            .data
+            .iter()
+            .map(|row| row.iter().rev().cloned().collect())
+            .collect();
+        Self::new(flipped)
+    }
     pub fn width(&self) -> i32 {
         self.data[0].len() as i32
     }

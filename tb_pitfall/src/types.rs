@@ -11,8 +11,21 @@ pub struct Pitfall {
 
 #[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Player {
+    /// X position of the player.
     pub x: i32,
+    /// Y position of the player.
     pub y: i32,
+    /// Direction to face.
+    pub facing_left: bool,
+    /// Walk/Jump/Stand?
+    pub action: PlayerAction,
+}
+
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
+pub enum PlayerAction {
+    Stand,
+    Walk(usize),
+    Jump(usize),
 }
 
 // Put the rest of the structs for your game here

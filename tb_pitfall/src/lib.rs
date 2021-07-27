@@ -7,6 +7,7 @@ extern crate lazy_static;
 extern crate schemars;
 
 pub mod pitfall;
+mod sprites;
 mod types;
 // list any additional modules here
 

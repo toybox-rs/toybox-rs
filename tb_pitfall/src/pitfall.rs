@@ -1,4 +1,6 @@
+use crate::sprites::load_harry_sprites;
 use crate::types::*;
+
 use serde_json;
 use toybox_core;
 use toybox_core::graphics::{load_digit_sprites, Color, FixedSpriteData};
@@ -45,6 +47,13 @@ lazy_static! {
     .into_iter()
     .rev()
     .collect();
+    static ref WALK_RIGHT_SPRITES: Vec<FixedSpriteData> =
+        load_harry_sprites(include_str!("resources/harry-walk.txt"));
+    static ref WALK_LEFT_SPRITES: Vec<FixedSpriteData> =
+        WALK_RIGHT_SPRITES.iter().map(|it| it.flip_x()).collect();
+    static ref STAND_RIGHT_SPRITE: FixedSpriteData =
+        load_harry_sprites(include_str!("resources/harry-still.txt"))[0].clone();
+    static ref STAND_LEFT_SPRITE: FixedSpriteData = STAND_RIGHT_SPRITE.flip_x();
 }
 
 impl Default for Pitfall {
@@ -73,8 +82,19 @@ impl StateCore {
             player: Player {
                 x: cfg.player_start.0,
                 y: cfg.player_start.1,
+                facing_left: false,
+                action: PlayerAction::Stand,
             },
         }
+    }
+}
+
+impl Player {
+    fn walk(&mut self) {
+        self.action = match self.action {
+            PlayerAction::Jump(_) | PlayerAction::Stand => PlayerAction::Walk(0),
+            PlayerAction::Walk(x) => PlayerAction::Walk((x + 1) % 8),
+        };
     }
 }
 
@@ -167,8 +187,14 @@ impl toybox_core::State for State {
         }
         if buttons.left {
             self.state.player.x -= 1;
+            self.state.player.facing_left = true;
+            self.state.player.walk();
         } else if buttons.right {
             self.state.player.x += 1;
+            self.state.player.facing_left = false;
+            self.state.player.walk();
+        } else {
+            self.state.player.action = PlayerAction::Stand;
         }
     }
     /// Any state can create a vector of drawable objects to present itself.
@@ -256,13 +282,38 @@ impl toybox_core::State for State {
             &mut out,
         );
 
-        // draw the player (red rectangle for now).
-        out.push(Drawable::Rectangle {
-            color: Color::rgb(255, 0, 0),
-            x: self.state.player.x - 1,
-            y: self.state.player.y - 8,
-            w: 2,
-            h: 8,
+        // draw the player
+        let harry_left = self.state.player.facing_left;
+        let mut harry_img: &FixedSpriteData = if harry_left {
+            &STAND_LEFT_SPRITE
+        } else {
+            &STAND_RIGHT_SPRITE
+        };
+
+        match self.state.player.action {
+            PlayerAction::Stand => {}
+            PlayerAction::Walk(frame) => {
+                let frame = frame / 2;
+                if harry_left {
+                    harry_img = &WALK_LEFT_SPRITES[frame];
+                } else {
+                    harry_img = &WALK_RIGHT_SPRITES[frame];
+                }
+            }
+            PlayerAction::Jump(frame) => {
+                let frame = frame / 2;
+                if harry_left {
+                    harry_img = &WALK_LEFT_SPRITES[frame];
+                } else {
+                    harry_img = &WALK_RIGHT_SPRITES[frame];
+                }
+            }
+        }
+
+        out.push(Drawable::StaticSprite {
+            x: self.state.player.x - harry_img.width() / 2,
+            y: self.state.player.y - harry_img.height(),
+            data: harry_img.clone(),
         });
 
         out
