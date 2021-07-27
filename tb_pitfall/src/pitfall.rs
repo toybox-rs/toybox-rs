@@ -30,6 +30,9 @@ const POINTS_XY: (i32, i32) = (OFFSET.0 + 60, OFFSET.1 + 3);
 const TIME_XY: (i32, i32) = (POINTS_XY.0, OFFSET.1 + 16);
 const VBAR_XY: (i32, i32) = (OFFSET.0 + 16, OFFSET.1 + 16); // the || before the time
 
+const SCREEN_X_BOUNDS: (i32, i32) = (8, 148);
+const HARRY_WH: (i32, i32) = (0, 8);
+
 lazy_static! {
     static ref DIGIT_SPRITES: Vec<FixedSpriteData> = load_digit_sprites(
         include_str!("resources/digits.txt"),
@@ -45,10 +48,11 @@ lazy_static! {
 impl Default for Pitfall {
     fn default() -> Self {
         Pitfall {
+            player_start: (GROUND_XY.0 + 12, 8 + GROUND_XY.1),
             // TODO
             // In types.rs, there will be a struct called Pitfall
-            // You should populate it with the necessary game-specific fields 
-            // and their types, and document them there. 
+            // You should populate it with the necessary game-specific fields
+            // and their types, and document them there.
             // Then add default values for those fields here.
         }
     }
@@ -56,10 +60,21 @@ impl Default for Pitfall {
 
 impl Default for StateCore {
     fn default() -> Self {
-        StateCore {
-            score: 0,
-            lives: 1000,
+        let cfg = Pitfall::default();
+        Self::from_config(&cfg)
+    }
+}
+
+impl StateCore {
+    fn from_config(cfg: &Pitfall) -> Self {
+        Self {
+            score: 2000,
+            lives: 2,
             level: 1,
+            player: Player {
+                x: cfg.player_start.0,
+                y: cfg.player_start.1,
+            },
         }
     }
 }
@@ -76,7 +91,7 @@ impl toybox_core::Simulation for Pitfall {
     fn new_game(&mut self) -> Box<dyn toybox_core::State> {
         Box::new(State {
             config: self.clone(),
-            state: StateCore::default(),
+            state: StateCore::from_config(self),
         })
     }
 
@@ -148,6 +163,11 @@ impl toybox_core::State for State {
         if buttons.button1 {
             // TODO: jump
         }
+        if buttons.left {
+            self.state.player.x -= 1;
+        } else if buttons.right {
+            self.state.player.x += 1;
+        }
     }
     /// Any state can create a vector of drawable objects to present itself.
     fn draw(&self) -> Vec<Drawable> {
@@ -187,16 +207,29 @@ impl toybox_core::State for State {
             h: GROUND_WH.1,
         });
 
+        let score_str = format!("{}", self.state.score);
+        let score_digits = score_str
+            .chars()
+            .rev()
+            .map(|it| it.to_digit(10).unwrap_or_default());
         let numbers: &[FixedSpriteData] = &DIGIT_SPRITES;
-        for (i, digit) in [0usize, 0, 0, 2].iter().enumerate() {
+        for (i, digit) in score_digits.enumerate() {
             let i = i as i32;
-            let data: &FixedSpriteData = &numbers[*digit];
+            let data: &FixedSpriteData = &numbers[digit as usize];
             out.push(Drawable::StaticSprite {
                 x: POINTS_XY.0 - (i * 8),
                 y: POINTS_XY.1,
                 data: data.clone(),
             })
         }
+
+        out.push(Drawable::Rectangle {
+            color: Color::rgb(255, 0, 0),
+            x: self.state.player.x - 1,
+            y: self.state.player.y - 8,
+            w: 2,
+            h: 8,
+        });
 
         out
     }
