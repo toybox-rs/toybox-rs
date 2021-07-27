@@ -11,17 +11,17 @@ pub use toybox_core::State;
 pub fn get_simulation_by_name(name: &str) -> Result<Box<dyn Simulation>, String> {
     match name.to_lowercase().as_str() {
         #[cfg(feature = "amidar")]
-"amidar" => Ok(Box::new(amidar::Amidar::default())),
-#[cfg(feature = "breakout")]
-"breakout" => Ok(Box::new(breakout::Breakout::default())),
-#[cfg(feature = "gridworld")]
-"gridworld" => Ok(Box::new(gridworld::GridWorld::default())),
-#[cfg(feature = "spaceinvaders")]
-"spaceinvaders" => Ok(Box::new(spaceinvaders::SpaceInvaders::default())),
-#[cfg(feature = "pong")]
-"pong" => Ok(Box::new(pong::Pong::default())),
-#[cfg(feature = "pitfall")]
-"pitfall" => Ok(Box::new(pitfall::Pitfall::default())),
+        "amidar" => Ok(Box::new(amidar::Amidar::default())),
+        #[cfg(feature = "breakout")]
+        "breakout" => Ok(Box::new(breakout::Breakout::default())),
+        #[cfg(feature = "gridworld")]
+        "gridworld" => Ok(Box::new(gridworld::GridWorld::default())),
+        #[cfg(feature = "spaceinvaders")]
+        "spaceinvaders" => Ok(Box::new(spaceinvaders::SpaceInvaders::default())),
+        #[cfg(feature = "pong")]
+        "pong" => Ok(Box::new(pong::Pong::default())),
+        #[cfg(feature = "pitfall")]
+        "pitfall" => Ok(Box::new(pitfall::Pitfall::default())),
         _ => Err(format!(
             "Cannot construct game: `{}`. Try any of {:?}.",
             name, GAME_LIST
@@ -32,23 +32,17 @@ pub fn get_simulation_by_name(name: &str) -> Result<Box<dyn Simulation>, String>
 /// This defines the set of games that are known. An index into this array is used in human_play, so try not to shuffle them!
 pub const GAME_LIST: &[&str] = &[
     #[cfg(feature = "amidar")]
-"amidar",
-
-#[cfg(feature = "breakout")]
-"breakout",
-
-#[cfg(feature = "gridworld")]
-"gridworld",
-
-#[cfg(feature = "spaceinvaders")]
-"spaceinvaders",
-
-#[cfg(feature = "pong")]
-"pong",
-
-#[cfg(feature = "pitfall")]
-"pitfall",
-
+    "amidar",
+    #[cfg(feature = "breakout")]
+    "breakout",
+    #[cfg(feature = "gridworld")]
+    "gridworld",
+    #[cfg(feature = "spaceinvaders")]
+    "spaceinvaders",
+    #[cfg(feature = "pong")]
+    "pong",
+    #[cfg(feature = "pitfall")]
+    "pitfall",
 ];
 
 /// Amidar defined in this module.
