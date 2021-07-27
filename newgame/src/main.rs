@@ -161,7 +161,7 @@ fn add_to_dependences(cargo_toml: &mut TBCargo, dir: &String, game: &String) -> 
 
 fn remove_from_dependences(
     cargo_toml: &mut TBCargo,
-    dir: &String,
+    _dir: &String,
     game: &String,
 ) -> Result<(), String> {
     let deps = cargo_toml.dependencies.clone();

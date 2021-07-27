@@ -1,1 +1,1 @@
-games = ["Amidar", "Breakout", "GridWorld", "SpaceInvaders", "Pong"]
+games = ["Amidar", "Breakout", "GridWorld", "SpaceInvaders", "Pong", "Pitfall"]

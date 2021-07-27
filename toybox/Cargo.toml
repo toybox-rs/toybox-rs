@@ -19,6 +19,11 @@ optional = true
 path = "../tb_gridworld"
 version = "*"
 
+[dependencies.pitfall]
+optional = true
+path = "../tb_pitfall"
+version = "*"
+
 [dependencies.pong]
 optional = true
 path = "../tb_pong"
@@ -34,4 +39,4 @@ path = "../core"
 version = "*"
 
 [features]
-default = ["amidar", "breakout", "spaceinvaders", "gridworld", "pong"]
+default = ["amidar", "breakout", "spaceinvaders", "gridworld", "pong", "pitfall"]

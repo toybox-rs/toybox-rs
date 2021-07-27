@@ -69,7 +69,7 @@ mod screen {
     pub const FIELD_WIDTH: i32 = 216;
     pub const BRICK_HEIGHT: i32 = 4;
     pub const BRICK_WIDTH: i32 = 12;
-    pub const BRICKS_ACROSS: i32 = (FIELD_WIDTH / BRICK_WIDTH);
+    pub const BRICKS_ACROSS: i32 = FIELD_WIDTH / BRICK_WIDTH;
 
     pub const PADDLE_START_Y: i32 = FRAME_TO_PADDLE + BOARD_TOP_Y;
     pub const PADDLE_START_SIZE: (i32, i32) = (24, 3);
