@@ -13,6 +13,8 @@ const LIGHT_GREEN: (u8, u8, u8) = (110, 156, 66);
 const TREES_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 51);
 const BARK_COLOR: (u8, u8, u8) = (72, 72, 0);
 
+const DIGIT_WIDTH: i32 = 8;
+
 const SKY_XY: (i32, i32) = (OFFSET.0, 56);
 const SKY_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 60);
 
@@ -49,11 +51,7 @@ impl Default for Pitfall {
     fn default() -> Self {
         Pitfall {
             player_start: (GROUND_XY.0 + 12, 8 + GROUND_XY.1),
-            // TODO
-            // In types.rs, there will be a struct called Pitfall
-            // You should populate it with the necessary game-specific fields
-            // and their types, and document them there.
-            // Then add default values for those fields here.
+            frame_rate: 60,
         }
     }
 }
@@ -69,6 +67,7 @@ impl StateCore {
     fn from_config(cfg: &Pitfall) -> Self {
         Self {
             score: 2000,
+            frames_remaining: 60 * 20 * cfg.frame_rate,
             lives: 2,
             level: 1,
             player: Player {
@@ -160,6 +159,9 @@ impl toybox_core::State for State {
     }
     /// To update internally to the next state, we pass buttons to internal logic.
     fn update_mut(&mut self, buttons: toybox_core::Input) {
+        // subtract from time-limit.
+        self.state.frames_remaining -= 1;
+
         if buttons.button1 {
             // TODO: jump
         }
@@ -175,6 +177,7 @@ impl toybox_core::State for State {
 
         out.push(Drawable::Clear(Color::black()));
 
+        // This is the dark foliage (score/time rendered here)
         out.push(Drawable::Rectangle {
             color: Color::from(&DARK_GREEN),
             x: OFFSET.0,
@@ -183,6 +186,7 @@ impl toybox_core::State for State {
             h: TREES_WH.1,
         });
 
+        // This is the bright foliage (tree barks go on top)
         out.push(Drawable::Rectangle {
             color: Color::from(&LIGHT_GREEN),
             x: SKY_XY.0,
@@ -191,6 +195,7 @@ impl toybox_core::State for State {
             h: SKY_WH.1,
         });
 
+        // This is the floor in the 'underground'.
         out.push(Drawable::Rectangle {
             color: Color::from(&UNDER_COLOR),
             x: UNDER_XY.0,
@@ -199,6 +204,7 @@ impl toybox_core::State for State {
             h: UNDER_WH.1,
         });
 
+        // this is where 'Harry' starts the game.
         out.push(Drawable::Rectangle {
             color: Color::from(&GROUND_COLOR),
             x: GROUND_XY.0,
@@ -207,22 +213,50 @@ impl toybox_core::State for State {
             h: GROUND_WH.1,
         });
 
-        let score_str = format!("{}", self.state.score);
-        let score_digits = score_str
-            .chars()
-            .rev()
-            .map(|it| it.to_digit(10).unwrap_or_default());
-        let numbers: &[FixedSpriteData] = &DIGIT_SPRITES;
-        for (i, digit) in score_digits.enumerate() {
-            let i = i as i32;
-            let data: &FixedSpriteData = &numbers[digit as usize];
-            out.push(Drawable::StaticSprite {
-                x: POINTS_XY.0 - (i * 8),
-                y: POINTS_XY.1,
-                data: data.clone(),
-            })
+        // helper for rendering numeric digits:
+        fn render_digits(text: &str, x: i32, y: i32, out: &mut Vec<Drawable>) {
+            for (i, digit) in text
+                .chars()
+                .rev()
+                .map(|it| it.to_digit(10).unwrap_or_default())
+                .enumerate()
+            {
+                let i = i as i32;
+                let data: &FixedSpriteData = &DIGIT_SPRITES[digit as usize];
+                out.push(Drawable::StaticSprite {
+                    x: x - (i * DIGIT_WIDTH),
+                    y,
+                    data: data.clone(),
+                })
+            }
         }
+        render_digits(
+            &format!("{}", self.state.score),
+            POINTS_XY.0,
+            POINTS_XY.1,
+            &mut out,
+        );
 
+        let frames_left = self.state.frames_remaining;
+        let seconds_left = frames_left / self.config.frame_rate;
+        let minutes_left = seconds_left / 60;
+        let minutes_str = format!("{:02}", minutes_left.max(0));
+        let seconds_str = format!("{:02}", seconds_left.max(0) % 60);
+
+        render_digits(&seconds_str, TIME_XY.0, TIME_XY.1, &mut out);
+        out.push(Drawable::StaticSprite {
+            x: TIME_XY.0 - DIGIT_WIDTH * 2,
+            y: TIME_XY.1,
+            data: DIGIT_SPRITES[10].clone(),
+        });
+        render_digits(
+            &minutes_str,
+            TIME_XY.0 - DIGIT_WIDTH * 3,
+            TIME_XY.1,
+            &mut out,
+        );
+
+        // draw the player (red rectangle for now).
         out.push(Drawable::Rectangle {
             color: Color::rgb(255, 0, 0),
             x: self.state.player.x - 1,
