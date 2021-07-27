@@ -24,6 +24,10 @@ const GROUND_XY: (i32, i32) = (OFFSET.0, 116);
 const GROUND_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 16);
 const GROUND_COLOR: (u8, u8, u8) = (187, 187, 53);
 
+const ROOF_XY: (i32, i32) = (OFFSET.0, GROUND_XY.1 + GROUND_WH.1);
+const ROOF_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 15);
+const ROOF_COLOR: (u8, u8, u8) = UNDER_COLOR;
+
 const UNDER_XY: (i32, i32) = (OFFSET.0, 180);
 const UNDER_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 6);
 const UNDER_COLOR: (u8, u8, u8) = (134, 134, 29);
@@ -36,6 +40,15 @@ const VBAR_XY: (i32, i32) = (OFFSET.0 + 16, OFFSET.1 + 16); // the || before the
 
 const SCREEN_X_BOUNDS: (i32, i32) = (8, 148);
 const HARRY_WH: (i32, i32) = (0, 8);
+
+const LADDER_PIT_WH: (i32, i32) = (8, 6);
+const LADDER_PIT_OFF_Y: i32 = (GROUND_WH.1 - LADDER_PIT_WH.1) / 2;
+
+const LADDER_BG_COLOR: (u8, u8, u8) = (0, 0, 0);
+const LADDER_SQUARE_COLOR: (u8, u8, u8) = GROUND_COLOR;
+const LADDER_SQUARE_WH: (i32, i32) = (4, 2);
+
+const CENTER_LADDER_X: i32 = OFFSET.0 + 68;
 
 lazy_static! {
     static ref DIGIT_SPRITES: Vec<FixedSpriteData> = load_digit_sprites(
@@ -230,7 +243,16 @@ impl toybox_core::State for State {
             h: UNDER_WH.1,
         });
 
-        // this is where 'Harry' starts the game.
+        // This is the roof in the 'underground'.
+        out.push(Drawable::Rectangle {
+            color: Color::from(&ROOF_COLOR),
+            x: ROOF_XY.0,
+            y: ROOF_XY.1,
+            w: ROOF_WH.0,
+            h: ROOF_WH.1,
+        });
+
+        // this is the floor where 'Harry' starts the game.
         out.push(Drawable::Rectangle {
             color: Color::from(&GROUND_COLOR),
             x: GROUND_XY.0,
@@ -238,6 +260,37 @@ impl toybox_core::State for State {
             w: GROUND_WH.0,
             h: GROUND_WH.1,
         });
+
+        for ladder_x in [CENTER_LADDER_X].iter().cloned() {
+            let start_y = GROUND_XY.1 + LADDER_PIT_OFF_Y;
+            out.push(Drawable::Rectangle {
+                color: Color::from(&LADDER_BG_COLOR),
+                x: ladder_x,
+                y: start_y,
+                w: LADDER_PIT_WH.0,
+                h: UNDER_XY.1 - start_y,
+            });
+            // player layered in here...
+            out.push(Drawable::Rectangle {
+                color: Color::from(&GROUND_COLOR),
+                x: ladder_x,
+                y: start_y + LADDER_PIT_WH.1,
+                w: LADDER_PIT_WH.0,
+                h: LADDER_PIT_OFF_Y,
+            });
+
+            let rungs_start = GROUND_XY.1 + GROUND_WH.1 + 1;
+
+            for y in (rungs_start..UNDER_XY.1).step_by(6) {
+                out.push(Drawable::Rectangle {
+                    color: Color::from(&LADDER_SQUARE_COLOR),
+                    x: ladder_x + 2,
+                    y: y + 2,
+                    w: LADDER_SQUARE_WH.0,
+                    h: LADDER_SQUARE_WH.1,
+                });
+            }
+        }
 
         // helper for rendering numeric digits:
         fn render_digits(text: &str, x: i32, y: i32, out: &mut Vec<Drawable>) {

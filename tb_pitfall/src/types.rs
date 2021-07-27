@@ -54,3 +54,7 @@ pub struct State {
     /// The state that represents the immediately current frame.
     pub state: StateCore,
 }
+
+pub struct Ladder {
+    x: i32,
+}
