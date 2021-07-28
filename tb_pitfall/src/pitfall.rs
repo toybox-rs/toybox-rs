@@ -49,7 +49,9 @@ const LADDER_SQUARE_COLOR: (u8, u8, u8) = GROUND_COLOR;
 const LADDER_SQUARE_WH: (i32, i32) = (4, 2);
 
 const CENTER_LADDER_X: i32 = OFFSET.0 + 68;
+const RIGHT_LOG_X: i32 = OFFSET.0 + 116;
 
+// https://github.com/johnidm/asm-atari-2600/blob/8b613f3c4bc80d2dfec2c270395b0a97c992c9af/pitfall.asm#L3040-L3043
 const JUMP_TABLE: &[i8] = &[
     1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0, 0, -1, 0, 0, -1, 0, -1, -1, -1, -1,
     -1, -1, -1,
@@ -75,6 +77,9 @@ lazy_static! {
     static ref JUMP_RIGHT_SPRITE: FixedSpriteData =
         load_harry_sprites(include_str!("resources/harry-jump.txt"))[0].clone();
     static ref JUMP_LEFT_SPRITE: FixedSpriteData = JUMP_RIGHT_SPRITE.flip_x();
+    // two sprites for log animation
+    static ref LOG_SPRITES: Vec<FixedSpriteData> =
+        load_digit_sprites(include_str!("resources/log.txt"), Color::from(&LOG_COLOR), 'X', '.');
 }
 
 impl Default for Pitfall {
@@ -106,6 +111,10 @@ impl StateCore {
                 facing_left: false,
                 action: PlayerAction::Stand,
             },
+            entities: vec![
+                Entity::Log { x: RIGHT_LOG_X },
+                Entity::Ladder { x: CENTER_LADDER_X },
+            ],
         }
     }
 }
@@ -113,15 +122,28 @@ impl StateCore {
 impl Player {
     fn walk(&mut self) {
         self.action = match self.action {
-            PlayerAction::Hurt | PlayerAction::Jump(_) => return,
-            PlayerAction::Stand => PlayerAction::Walk(0),
+            PlayerAction::Jump(_) => return,
+            PlayerAction::Fall | PlayerAction::Hurt | PlayerAction::Stand => PlayerAction::Walk(0),
             PlayerAction::Walk(x) => PlayerAction::Walk((x + 1) % 8),
         };
     }
-    fn on_ground(&self) -> bool {
-        match self.action {
-            PlayerAction::Stand | PlayerAction::Walk(_) => true,
-            _ => false,
+    fn is_upstairs(&self) -> bool {
+        self.y < ROOF_XY.1
+    }
+}
+
+impl Entity {
+    fn collides(&self, player: &Player) -> bool {
+        match self {
+            Entity::Log { x } => {
+                let x2 = x + LOG_SPRITES[0].width();
+
+                return player.is_upstairs() && player.x >= *x && player.x <= x2;
+            }
+            Entity::Ladder { x } => {
+                let x2 = x + LADDER_PIT_WH.0;
+                return player.x >= *x && player.x <= x2;
+            }
         }
     }
 }
@@ -212,6 +234,13 @@ impl toybox_core::State for State {
 
         let update = if let PlayerAction::Jump(index) = self.state.player.action {
             self.state.player.y -= JUMP_TABLE[index] as i32;
+            if buttons.left {
+                self.state.player.x -= 1;
+                self.state.player.facing_left = true;
+            } else if buttons.right {
+                self.state.player.x += 1;
+                self.state.player.facing_left = false;
+            }
             if index + 1 >= JUMP_TABLE.len() {
                 Some(PlayerAction::Stand)
             } else {
@@ -222,20 +251,67 @@ impl toybox_core::State for State {
         };
         if let Some(new_action) = update {
             self.state.player.action = new_action;
-        } else if buttons.button1 {
-            self.state.player.action = PlayerAction::Jump(0);
         }
 
-        if buttons.left {
-            self.state.player.x -= 1;
-            self.state.player.facing_left = true;
-            self.state.player.walk();
-        } else if buttons.right {
-            self.state.player.x += 1;
-            self.state.player.facing_left = false;
-            self.state.player.walk();
-        } else if self.state.player.on_ground() {
-            self.state.player.action = PlayerAction::Stand;
+        // Can only jump if standing or walking:
+        match self.state.player.action {
+            PlayerAction::Stand | PlayerAction::Walk(_) => {
+                if buttons.button1 {
+                    self.state.player.action = PlayerAction::Jump(0);
+                }
+            }
+            PlayerAction::Jump(_) | PlayerAction::Hurt | PlayerAction::Fall => {}
+        }
+
+        match self.state.player.action {
+            PlayerAction::Stand | PlayerAction::Hurt | PlayerAction::Walk(_) => {
+                if buttons.left {
+                    self.state.player.x -= 1;
+                    self.state.player.facing_left = true;
+                    self.state.player.walk();
+                } else if buttons.right {
+                    self.state.player.x += 1;
+                    self.state.player.facing_left = false;
+                    self.state.player.walk();
+                } else {
+                    self.state.player.action = PlayerAction::Stand;
+                }
+                for e in self.state.entities.iter() {
+                    if e.collides(&self.state.player) {
+                        match e {
+                            Entity::Log { .. } => {
+                                self.state.player.action = PlayerAction::Hurt;
+                                self.state.score -= 1;
+                            }
+                            Entity::Ladder { .. } => {
+                                if self.state.player.is_upstairs() {
+                                    self.state.player.action = PlayerAction::Fall;
+                                    self.state.score -= 100;
+                                } else {
+                                    if buttons.up {
+                                        // TODO: climbing
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            PlayerAction::Jump(_) | PlayerAction::Fall => {}
+        }
+
+        // falling:
+        if let PlayerAction::Fall = self.state.player.action {
+            self.state.player.y += 1;
+            if self.state.player.y >= UNDER_XY.1 {
+                self.state.player.y = UNDER_XY.1;
+                self.state.player.action = PlayerAction::Stand;
+            }
+        }
+
+        // don't let scores go too low...
+        if self.state.score < 0 {
+            self.state.score = 0;
         }
     }
     /// Any state can create a vector of drawable objects to present itself.
@@ -289,33 +365,86 @@ impl toybox_core::State for State {
             h: GROUND_WH.1,
         });
 
-        for ladder_x in [CENTER_LADDER_X].iter().cloned() {
-            let start_y = GROUND_XY.1 + LADDER_PIT_OFF_Y;
-            out.push(Drawable::Rectangle {
-                color: Color::from(&LADDER_BG_COLOR),
-                x: ladder_x,
-                y: start_y,
-                w: LADDER_PIT_WH.0,
-                h: UNDER_XY.1 - start_y,
-            });
-            // player layered in here...
-            out.push(Drawable::Rectangle {
-                color: Color::from(&GROUND_COLOR),
-                x: ladder_x,
-                y: start_y + LADDER_PIT_WH.1,
-                w: LADDER_PIT_WH.0,
-                h: LADDER_PIT_OFF_Y,
-            });
+        for e in self.state.entities.iter() {
+            match e {
+                Entity::Log { x } => {
+                    out.push(Drawable::StaticSprite {
+                        x: *x,
+                        y: GROUND_XY.1 + 1,
+                        data: LOG_SPRITES[0].clone(),
+                    });
+                }
+                Entity::Ladder { x } => {
+                    let ladder_x = *x;
 
-            let rungs_start = GROUND_XY.1 + GROUND_WH.1 + 1;
+                    // black bg:
+                    let start_y = GROUND_XY.1 + LADDER_PIT_OFF_Y;
+                    out.push(Drawable::Rectangle {
+                        color: Color::from(&LADDER_BG_COLOR),
+                        x: ladder_x,
+                        y: start_y,
+                        w: LADDER_PIT_WH.0,
+                        h: UNDER_XY.1 - start_y,
+                    });
+                    let rungs_start = GROUND_XY.1 + GROUND_WH.1 + 1;
 
-            for y in (rungs_start..UNDER_XY.1).step_by(6) {
+                    for y in (rungs_start..UNDER_XY.1).step_by(6) {
+                        out.push(Drawable::Rectangle {
+                            color: Color::from(&LADDER_SQUARE_COLOR),
+                            x: ladder_x + 2,
+                            y: y + 2,
+                            w: LADDER_SQUARE_WH.0,
+                            h: LADDER_SQUARE_WH.1,
+                        });
+                    }
+                }
+            }
+        }
+
+        // draw the player
+        let harry_left = self.state.player.facing_left;
+        let mut harry_img: &FixedSpriteData = if harry_left {
+            &STAND_LEFT_SPRITE
+        } else {
+            &STAND_RIGHT_SPRITE
+        };
+
+        // render player:
+        match self.state.player.action {
+            PlayerAction::Stand => {}
+            PlayerAction::Walk(frame) => {
+                let frame = frame / 2;
+                if harry_left {
+                    harry_img = &WALK_LEFT_SPRITES[frame];
+                } else {
+                    harry_img = &WALK_RIGHT_SPRITES[frame];
+                }
+            }
+            PlayerAction::Jump(_) | PlayerAction::Hurt | PlayerAction::Fall => {
+                if harry_left {
+                    harry_img = &JUMP_LEFT_SPRITE;
+                } else {
+                    harry_img = &JUMP_RIGHT_SPRITE;
+                }
+            }
+        }
+
+        out.push(Drawable::StaticSprite {
+            x: self.state.player.x - harry_img.width() / 2,
+            y: self.state.player.y - harry_img.height(),
+            data: harry_img.clone(),
+        });
+
+        // draw pit-fronts:
+        for e in self.state.entities.iter() {
+            if let Entity::Ladder { x } = e {
+                let start_y = GROUND_XY.1 + LADDER_PIT_OFF_Y;
                 out.push(Drawable::Rectangle {
-                    color: Color::from(&LADDER_SQUARE_COLOR),
-                    x: ladder_x + 2,
-                    y: y + 2,
-                    w: LADDER_SQUARE_WH.0,
-                    h: LADDER_SQUARE_WH.1,
+                    color: Color::from(&GROUND_COLOR),
+                    x: *x,
+                    y: start_y + LADDER_PIT_WH.1,
+                    w: LADDER_PIT_WH.0,
+                    h: LADDER_PIT_OFF_Y,
                 });
             }
         }
@@ -362,39 +491,6 @@ impl toybox_core::State for State {
             TIME_XY.1,
             &mut out,
         );
-
-        // draw the player
-        let harry_left = self.state.player.facing_left;
-        let mut harry_img: &FixedSpriteData = if harry_left {
-            &STAND_LEFT_SPRITE
-        } else {
-            &STAND_RIGHT_SPRITE
-        };
-
-        match self.state.player.action {
-            PlayerAction::Stand => {}
-            PlayerAction::Walk(frame) => {
-                let frame = frame / 2;
-                if harry_left {
-                    harry_img = &WALK_LEFT_SPRITES[frame];
-                } else {
-                    harry_img = &WALK_RIGHT_SPRITES[frame];
-                }
-            }
-            PlayerAction::Jump(_) | PlayerAction::Hurt => {
-                if harry_left {
-                    harry_img = &JUMP_LEFT_SPRITE;
-                } else {
-                    harry_img = &JUMP_RIGHT_SPRITE;
-                }
-            }
-        }
-
-        out.push(Drawable::StaticSprite {
-            x: self.state.player.x - harry_img.width() / 2,
-            y: self.state.player.y - harry_img.height(),
-            data: harry_img.clone(),
-        });
 
         out
     }

@@ -27,6 +27,7 @@ pub enum PlayerAction {
     Walk(usize),
     Jump(usize),
     Hurt,
+    Fall, // from 'ground' to under-level.
 }
 
 // Put the rest of the structs for your game here
@@ -45,6 +46,9 @@ pub struct StateCore {
 
     /// Where is the player, is he jumping, etc.
     pub player: Player,
+
+    /// Entities in the room: logs, etc.
+    pub entities: Vec<Entity>,
 }
 
 /// Wrapping the current game config into one struct with the current frame state.
@@ -56,6 +60,8 @@ pub struct State {
     pub state: StateCore,
 }
 
-pub struct Ladder {
-    x: i32,
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
+pub enum Entity {
+    Ladder { x: i32 },
+    Log { x: i32 },
 }
