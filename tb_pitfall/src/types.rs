@@ -23,12 +23,20 @@ pub struct Player {
 
 #[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub enum PlayerAction {
+    /// Are we standing still?
     Stand,
+    /// There are ~4 walking frames.
     Walk(usize),
+    /// Usually jumping lets you move left/right as you will.
     Jump(usize),
+    /// Cannot jump while 'hurt'.
     Hurt,
+    /// There are two climbing animations.
     Climbing(usize),
-    Fall, // from 'ground' to under-level.
+    /// Jump off the ladder (table index, left or right); uncontrolled jump.
+    LadderJump(usize, i32),
+    /// Fall from 'ground' to underground; uncontrolled.
+    Fall,
 }
 
 // Put the rest of the structs for your game here

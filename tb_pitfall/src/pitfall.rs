@@ -52,6 +52,7 @@ const LADDER_SQUARE_WH: (i32, i32) = (4, 2);
 
 const CENTER_LADDER_X: i32 = OFFSET.0 + 68;
 const RIGHT_LOG_X: i32 = OFFSET.0 + 116;
+const UPSTAIRS_Y: i32 = 8 + GROUND_XY.1;
 
 // https://github.com/johnidm/asm-atari-2600/blob/8b613f3c4bc80d2dfec2c270395b0a97c992c9af/pitfall.asm#L3040-L3043
 const JUMP_TABLE: &[i8] = &[
@@ -91,7 +92,7 @@ lazy_static! {
 impl Default for Pitfall {
     fn default() -> Self {
         Pitfall {
-            player_start: (GROUND_XY.0 + 12, 8 + GROUND_XY.1),
+            player_start: (GROUND_XY.0 + 12, UPSTAIRS_Y),
             frame_rate: 60,
         }
     }
@@ -128,7 +129,9 @@ impl StateCore {
 impl Player {
     fn walk(&mut self) {
         self.action = match self.action {
-            PlayerAction::Climbing(_) | PlayerAction::Jump(_) => return,
+            PlayerAction::LadderJump(_, _) | PlayerAction::Climbing(_) | PlayerAction::Jump(_) => {
+                return
+            }
             PlayerAction::Fall | PlayerAction::Hurt | PlayerAction::Stand => PlayerAction::Walk(0),
             PlayerAction::Walk(x) => PlayerAction::Walk((x + 1) % 8),
         };
@@ -238,6 +241,26 @@ impl toybox_core::State for State {
         // subtract from time-limit.
         self.state.frames_remaining -= 1;
 
+        let update = if let PlayerAction::LadderJump(index, dir) = self.state.player.action {
+            self.state.player.y -= JUMP_TABLE[index] as i32;
+
+            if index % 2 == 0 {
+                self.state.player.x += dir;
+                self.state.player.facing_left = dir < 0;
+            }
+
+            if index + 1 >= JUMP_TABLE.len() {
+                Some(PlayerAction::Stand)
+            } else {
+                Some(PlayerAction::LadderJump(index + 1, dir))
+            }
+        } else {
+            None
+        };
+        if let Some(new_action) = update {
+            self.state.player.action = new_action;
+        }
+
         let update = if let PlayerAction::Jump(index) = self.state.player.action {
             self.state.player.y -= JUMP_TABLE[index] as i32;
             if buttons.left {
@@ -266,7 +289,8 @@ impl toybox_core::State for State {
                     self.state.player.action = PlayerAction::Jump(0);
                 }
             }
-            PlayerAction::Climbing(_)
+            PlayerAction::LadderJump(_, _)
+            | PlayerAction::Climbing(_)
             | PlayerAction::Jump(_)
             | PlayerAction::Hurt
             | PlayerAction::Fall => {}
@@ -308,7 +332,10 @@ impl toybox_core::State for State {
                     }
                 }
             }
-            PlayerAction::Climbing(_) | PlayerAction::Jump(_) | PlayerAction::Fall => {}
+            PlayerAction::LadderJump(_, _)
+            | PlayerAction::Climbing(_)
+            | PlayerAction::Jump(_)
+            | PlayerAction::Fall => {}
         }
 
         if let PlayerAction::Climbing(step) = self.state.player.action {
@@ -325,6 +352,15 @@ impl toybox_core::State for State {
                 } else {
                     self.state.player.y = UNDER_XY.1;
                     self.state.player.action = PlayerAction::Stand;
+                }
+            }
+            if at_top_of_ladder {
+                if buttons.right {
+                    self.state.player.y = UPSTAIRS_Y;
+                    self.state.player.action = PlayerAction::LadderJump(0, 1);
+                } else if buttons.left {
+                    self.state.player.y = UPSTAIRS_Y;
+                    self.state.player.action = PlayerAction::LadderJump(0, -1);
                 }
             }
         }
@@ -453,7 +489,10 @@ impl toybox_core::State for State {
                 let frame = (frame / 4) % CLIMB_SPRITES.len();
                 harry_img = &CLIMB_SPRITES[frame];
             }
-            PlayerAction::Jump(_) | PlayerAction::Hurt | PlayerAction::Fall => {
+            PlayerAction::LadderJump(_, _)
+            | PlayerAction::Jump(_)
+            | PlayerAction::Hurt
+            | PlayerAction::Fall => {
                 if harry_left {
                     harry_img = &JUMP_LEFT_SPRITE;
                 } else {
