@@ -50,6 +50,11 @@ const LADDER_SQUARE_WH: (i32, i32) = (4, 2);
 
 const CENTER_LADDER_X: i32 = OFFSET.0 + 68;
 
+const JUMP_TABLE: &[i8] = &[
+    1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0, 0, -1, 0, 0, -1, 0, -1, -1, -1, -1,
+    -1, -1, -1,
+];
+
 lazy_static! {
     static ref DIGIT_SPRITES: Vec<FixedSpriteData> = load_digit_sprites(
         include_str!("resources/digits.txt"),
@@ -67,6 +72,9 @@ lazy_static! {
     static ref STAND_RIGHT_SPRITE: FixedSpriteData =
         load_harry_sprites(include_str!("resources/harry-still.txt"))[0].clone();
     static ref STAND_LEFT_SPRITE: FixedSpriteData = STAND_RIGHT_SPRITE.flip_x();
+    static ref JUMP_RIGHT_SPRITE: FixedSpriteData =
+        load_harry_sprites(include_str!("resources/harry-jump.txt"))[0].clone();
+    static ref JUMP_LEFT_SPRITE: FixedSpriteData = JUMP_RIGHT_SPRITE.flip_x();
 }
 
 impl Default for Pitfall {
@@ -105,9 +113,16 @@ impl StateCore {
 impl Player {
     fn walk(&mut self) {
         self.action = match self.action {
-            PlayerAction::Jump(_) | PlayerAction::Stand => PlayerAction::Walk(0),
+            PlayerAction::Hurt | PlayerAction::Jump(_) => return,
+            PlayerAction::Stand => PlayerAction::Walk(0),
             PlayerAction::Walk(x) => PlayerAction::Walk((x + 1) % 8),
         };
+    }
+    fn on_ground(&self) -> bool {
+        match self.action {
+            PlayerAction::Stand | PlayerAction::Walk(_) => true,
+            _ => false,
+        }
     }
 }
 
@@ -195,9 +210,22 @@ impl toybox_core::State for State {
         // subtract from time-limit.
         self.state.frames_remaining -= 1;
 
-        if buttons.button1 {
-            // TODO: jump
+        let update = if let PlayerAction::Jump(index) = self.state.player.action {
+            self.state.player.y -= JUMP_TABLE[index] as i32;
+            if index + 1 >= JUMP_TABLE.len() {
+                Some(PlayerAction::Stand)
+            } else {
+                Some(PlayerAction::Jump(index + 1))
+            }
+        } else {
+            None
+        };
+        if let Some(new_action) = update {
+            self.state.player.action = new_action;
+        } else if buttons.button1 {
+            self.state.player.action = PlayerAction::Jump(0);
         }
+
         if buttons.left {
             self.state.player.x -= 1;
             self.state.player.facing_left = true;
@@ -206,7 +234,7 @@ impl toybox_core::State for State {
             self.state.player.x += 1;
             self.state.player.facing_left = false;
             self.state.player.walk();
-        } else {
+        } else if self.state.player.on_ground() {
             self.state.player.action = PlayerAction::Stand;
         }
     }
@@ -353,12 +381,11 @@ impl toybox_core::State for State {
                     harry_img = &WALK_RIGHT_SPRITES[frame];
                 }
             }
-            PlayerAction::Jump(frame) => {
-                let frame = frame / 2;
+            PlayerAction::Jump(_) | PlayerAction::Hurt => {
                 if harry_left {
-                    harry_img = &WALK_LEFT_SPRITES[frame];
+                    harry_img = &JUMP_LEFT_SPRITE;
                 } else {
-                    harry_img = &WALK_RIGHT_SPRITES[frame];
+                    harry_img = &JUMP_RIGHT_SPRITE;
                 }
             }
         }

@@ -26,6 +26,7 @@ pub enum PlayerAction {
     Stand,
     Walk(usize),
     Jump(usize),
+    Hurt,
 }
 
 // Put the rest of the structs for your game here
