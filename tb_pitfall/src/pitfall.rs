@@ -24,6 +24,8 @@ const GROUND_XY: (i32, i32) = (OFFSET.0, 116);
 const GROUND_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 16);
 const GROUND_COLOR: (u8, u8, u8) = (187, 187, 53);
 
+const LADDER_TOP_Y: i32 = GROUND_XY.1 + 24;
+
 const ROOF_XY: (i32, i32) = (OFFSET.0, GROUND_XY.1 + GROUND_WH.1);
 const ROOF_WH: (i32, i32) = (SIZE.0 - OFFSET.0, 15);
 const ROOF_COLOR: (u8, u8, u8) = UNDER_COLOR;
@@ -77,6 +79,10 @@ lazy_static! {
     static ref JUMP_RIGHT_SPRITE: FixedSpriteData =
         load_harry_sprites(include_str!("resources/harry-jump.txt"))[0].clone();
     static ref JUMP_LEFT_SPRITE: FixedSpriteData = JUMP_RIGHT_SPRITE.flip_x();
+    static ref CLIMB_SPRITES: Vec<FixedSpriteData> =
+        load_harry_sprites(include_str!("resources/harry-climb.txt"));
+
+
     // two sprites for log animation
     static ref LOG_SPRITES: Vec<FixedSpriteData> =
         load_digit_sprites(include_str!("resources/log.txt"), Color::from(&LOG_COLOR), 'X', '.');
@@ -122,7 +128,7 @@ impl StateCore {
 impl Player {
     fn walk(&mut self) {
         self.action = match self.action {
-            PlayerAction::Jump(_) => return,
+            PlayerAction::Climbing(_) | PlayerAction::Jump(_) => return,
             PlayerAction::Fall | PlayerAction::Hurt | PlayerAction::Stand => PlayerAction::Walk(0),
             PlayerAction::Walk(x) => PlayerAction::Walk((x + 1) % 8),
         };
@@ -260,9 +266,13 @@ impl toybox_core::State for State {
                     self.state.player.action = PlayerAction::Jump(0);
                 }
             }
-            PlayerAction::Jump(_) | PlayerAction::Hurt | PlayerAction::Fall => {}
+            PlayerAction::Climbing(_)
+            | PlayerAction::Jump(_)
+            | PlayerAction::Hurt
+            | PlayerAction::Fall => {}
         }
 
+        // Where can we move right or left?
         match self.state.player.action {
             PlayerAction::Stand | PlayerAction::Hurt | PlayerAction::Walk(_) => {
                 if buttons.left {
@@ -281,15 +291,16 @@ impl toybox_core::State for State {
                         match e {
                             Entity::Log { .. } => {
                                 self.state.player.action = PlayerAction::Hurt;
-                                self.state.score -= 1;
+                                self.state.score -= 2;
                             }
-                            Entity::Ladder { .. } => {
+                            Entity::Ladder { x, .. } => {
                                 if self.state.player.is_upstairs() {
                                     self.state.player.action = PlayerAction::Fall;
                                     self.state.score -= 100;
                                 } else {
                                     if buttons.up {
-                                        // TODO: climbing
+                                        self.state.player.action = PlayerAction::Climbing(0);
+                                        self.state.player.x = x + CLIMB_SPRITES[0].width() / 2 + 1;
                                     }
                                 }
                             }
@@ -297,7 +308,25 @@ impl toybox_core::State for State {
                     }
                 }
             }
-            PlayerAction::Jump(_) | PlayerAction::Fall => {}
+            PlayerAction::Climbing(_) | PlayerAction::Jump(_) | PlayerAction::Fall => {}
+        }
+
+        if let PlayerAction::Climbing(step) = self.state.player.action {
+            let at_top_of_ladder = self.state.player.y <= LADDER_TOP_Y;
+            if buttons.up {
+                if !at_top_of_ladder {
+                    self.state.player.y -= 1;
+                    self.state.player.action = PlayerAction::Climbing(step + 1);
+                }
+            } else if buttons.down {
+                if self.state.player.y < UNDER_XY.1 {
+                    self.state.player.y += 1;
+                    self.state.player.action = PlayerAction::Climbing(step + 1);
+                } else {
+                    self.state.player.y = UNDER_XY.1;
+                    self.state.player.action = PlayerAction::Stand;
+                }
+            }
         }
 
         // falling:
@@ -419,6 +448,10 @@ impl toybox_core::State for State {
                 } else {
                     harry_img = &WALK_RIGHT_SPRITES[frame];
                 }
+            }
+            PlayerAction::Climbing(frame) => {
+                let frame = (frame / 4) % CLIMB_SPRITES.len();
+                harry_img = &CLIMB_SPRITES[frame];
             }
             PlayerAction::Jump(_) | PlayerAction::Hurt | PlayerAction::Fall => {
                 if harry_left {

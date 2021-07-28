@@ -27,6 +27,7 @@ pub enum PlayerAction {
     Walk(usize),
     Jump(usize),
     Hurt,
+    Climbing(usize),
     Fall, // from 'ground' to under-level.
 }
 
