@@ -1,4 +1,4 @@
-mkdocs==1.0.4
+mkdocs==1.2.3
 mkdocs-jupyter==0.10.2
 mkdocstrings==0.6.1
 pymdown-extensions==6.2.1
