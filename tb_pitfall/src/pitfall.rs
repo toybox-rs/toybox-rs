@@ -118,7 +118,10 @@ impl toybox_core::Simulation for Pitfall {
 
     /// This deserializes the "config" for a game from json.
     /// Generate new state and new config from JSON String.
-    fn from_json(&self, json: &str) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
+    fn from_json(
+        &self,
+        json: &str,
+    ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         let config: Pitfall = serde_json::from_str(json)?;
         Ok(Box::new(config))
     }
