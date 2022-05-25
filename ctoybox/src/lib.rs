@@ -15,7 +15,6 @@ fn ctoybox(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Game>()?;
     m.add_class::<State>()?;
     m.add_class::<Input>()?;
-
     Ok(())
 }
 
