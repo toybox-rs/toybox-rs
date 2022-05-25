@@ -89,7 +89,9 @@ class Simulator(object):
         if sim is None:
             try:
                 sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode("utf-8")))
+                print("Message A: If you are seeing this, you are using the correct version of toybox-rs")
             except:
+                print("Message B: If you are seeing this, we have both exercised the offending path and you are using the correct version of toybox-rs")
                 game_name = game_name.replace("_", "")
                 sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode("utf-8")))
         # sim should be a pointer

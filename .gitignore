@@ -9,3 +9,5 @@ __pycache__
 ctoybox/build
 .ipynb_checkpoints
 site
+ctoybox/env
+.env
