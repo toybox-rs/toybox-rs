@@ -87,7 +87,7 @@ impl toybox_core::Simulation for Pitfall {
     }
 
     /// Generate a new State. This is in a Box<State> because it may be 1 of many unknown types as far as calling code is concerned.
-    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State + Send> {
         Box::new(State {
             config: self.clone(),
             state: StateCore::from_config(self),
@@ -98,7 +98,7 @@ impl toybox_core::Simulation for Pitfall {
     fn new_state_from_json(
         &self,
         json: &str,
-    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State + Send>, serde_json::Error> {
         let state: StateCore = serde_json::from_str(json)?;
         Ok(Box::new(State {
             config: self.clone(),
@@ -118,7 +118,7 @@ impl toybox_core::Simulation for Pitfall {
 
     /// This deserializes the "config" for a game from json.
     /// Generate new state and new config from JSON String.
-    fn from_json(&self, json: &str) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    fn from_json(&self, json: &str) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         let config: Pitfall = serde_json::from_str(json)?;
         Ok(Box::new(config))
     }
@@ -272,7 +272,7 @@ impl toybox_core::State for State {
         serde_json::to_string(&self.state).expect("Should be no JSON Serialization Errors.")
     }
     /// Copy this state to save it for later.
-    fn copy(&self) -> Box<dyn toybox_core::State> {
+    fn copy(&self) -> Box<dyn toybox_core::State + Send> {
         Box::new(self.clone())
     }
     /// Submit a query to this state object, returning a JSON String or error message.

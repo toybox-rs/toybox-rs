@@ -95,7 +95,7 @@ impl toybox_core::Simulation for Pong {
         &self,
         json: &str,
     ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
-        Ok(Box::new(serde_json::from_str::<PongConfig>(json)?))
+        Ok(Box::new(serde_json::from_str::<Pong>(json)?))
     }
     /// Sync with [ALE Impl](https://github.com/mgbellemare/Arcade-Learning-Environment/blob/master/src/games/supported/Pong.cpp#L47)
     /// Note, leaving a call to sort in this impl to remind users that these vecs are ordered!
