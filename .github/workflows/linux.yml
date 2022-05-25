@@ -24,7 +24,7 @@ jobs:
         name: upload-wheel
         with:
           name: manylinux-wheel
-          path: target/wheels/
+          path: ctoybox/target/wheels/
       - name: '[on-create] pypi-publish'
         if: github.event_name == 'release'
         env: 

@@ -4,6 +4,7 @@ set -eu
 
 # delete old rust wheels
 rm -rf ctoybox/ctoybox
+rm -rf ctoybox/*.abi3.so
 
 # build rust package locally
 maturin develop --release

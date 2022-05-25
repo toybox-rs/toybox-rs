@@ -201,7 +201,7 @@ impl toybox_core::Simulation for GridWorld {
         actions
     }
 
-    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State + Send> {
         Box::new(State {
             frame: FrameState::from_config(&self),
             config: self.clone(),
@@ -211,7 +211,7 @@ impl toybox_core::Simulation for GridWorld {
     fn new_state_from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State + Send>, serde_json::Error> {
         let state: State = serde_json::from_str(json_str)?;
         Ok(Box::new(state))
     }
@@ -223,7 +223,7 @@ impl toybox_core::Simulation for GridWorld {
     fn from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         let config: GridWorld = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }
@@ -335,7 +335,7 @@ impl toybox_core::State for State {
         })
     }
 
-    fn copy(&self) -> Box<dyn toybox_core::State> {
+    fn copy(&self) -> Box<dyn toybox_core::State + Send> {
         Box::new(self.clone())
     }
 }

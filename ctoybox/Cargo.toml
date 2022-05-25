@@ -12,24 +12,24 @@ edition = "2018"
 name = "ctoybox"
 crate-type = ["cdylib"]
 
+[features]
+default = ["pyo3/extension-module"]
+
 [dependencies]
-libc = "0.2"
 serde = "1"
 serde_json = "1"
 serde_derive = "1"
-amidar = {path = "../tb_amidar", version="*"}
-breakout = {path = "../tb_breakout", version="*"}
-pong = {path = "../tb_pong", version="*"}
 toybox = {path = "../toybox", version="*"}
 schemars = "0.6"
+pyo3 = { version = "0.13", features = ["abi3-py36"] }
 
 [dependencies.toybox-core]
 version = "*"
 path = "../core"
 
 [package.metadata.maturin]
-requires-dist = ["pillow", "cffi", "numpy"]
+requires-dist = ["pillow", "numpy"]
 classifier = [
-  "Programming Language :: Python :: 3.5",
+  "Programming Language :: Python :: 3.6",
   "Operating System :: OS Independent",
 ]

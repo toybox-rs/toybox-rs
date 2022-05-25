@@ -862,7 +862,7 @@ impl toybox_core::Simulation for SpaceInvaders {
     fn game_size(&self) -> (i32, i32) {
         screen::GAME_SIZE
     }
-    fn new_game(&mut self) -> Box<dyn toybox_core::State> {
+    fn new_game(&mut self) -> Box<dyn toybox_core::State + Send> {
         Box::new(State {
             config: self.clone(),
             state: StateCore::new(self),
@@ -885,7 +885,7 @@ impl toybox_core::Simulation for SpaceInvaders {
     fn new_state_from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::State>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::State + Send>, serde_json::Error> {
         let state: StateCore = serde_json::from_str(json_str)?;
         Ok(Box::new(State {
             state,
@@ -900,7 +900,7 @@ impl toybox_core::Simulation for SpaceInvaders {
     fn from_json(
         &self,
         json_str: &str,
-    ) -> Result<Box<dyn toybox_core::Simulation>, serde_json::Error> {
+    ) -> Result<Box<dyn toybox_core::Simulation + Send>, serde_json::Error> {
         let config: SpaceInvaders = serde_json::from_str(json_str)?;
         Ok(Box::new(config))
     }
@@ -1140,7 +1140,7 @@ where
             _ => Err(QueryError::NoSuchQuery)?,
         })
     }
-    fn copy(&self) -> Box<dyn toybox_core::State> {
+    fn copy(&self) -> Box<dyn toybox_core::State + Send> {
         Box::new(self.clone())
     }
 }

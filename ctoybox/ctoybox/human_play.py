@@ -1,4 +1,4 @@
-from .ffi import Toybox, Input
+from . import Toybox, Input
 
 import numpy as np
 import argparse
@@ -6,7 +6,6 @@ import pygame
 import pygame.key
 from pygame.locals import *
 import pygame.surfarray
-import json
 import sys
 
 if __name__ == "__main__":

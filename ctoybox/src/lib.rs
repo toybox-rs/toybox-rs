@@ -1,38 +1,222 @@
-#![crate_type = "dylib"]
+use pyo3::{
+    exceptions::{self, PyValueError},
+    prelude::*,
+    types::PyByteArray,
+};
+use toybox::{
+    self,
+    graphics::{GrayscaleBuffer, ImageBuffer},
+    Simulation,
+};
+use toybox_core::AleAction;
 
-extern crate amidar;
-extern crate breakout;
-extern crate libc;
-extern crate pong;
-extern crate serde;
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-extern crate toybox;
-extern crate toybox_core;
+#[pymodule]
+fn ctoybox(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<Game>()?;
+    m.add_class::<State>()?;
+    m.add_class::<Input>()?;
 
-mod ffi_result;
-use ffi_result::FFIResult;
-
-/// This struct represents a Simulator that hides rust's "fat" pointer implementation.
-/// This struct is therefore whole as a single c void pointer, but the internals still have a pointer to both the trait and the actual impl.
-#[repr(C)]
-pub struct WrapSimulator {
-    pub simulator: Box<dyn toybox_core::Simulation>,
+    Ok(())
 }
 
-/// This struct represents a State that hides rust's "fat" pointer implementation.
-/// This struct is therefore whole as a single c void pointer, but the internals still have a pointer to both the trait and the actual impl.
-#[repr(C)]
-pub struct WrapState {
-    pub state: Box<dyn toybox_core::State>,
+#[pyclass]
+struct Game {
+    inner: Box<dyn Simulation + Send>,
 }
 
-/// Note: not-recursive. Free Error Message Manually!
-#[no_mangle]
-pub extern "C" fn free_ffi_result(originally_from_rust: *mut FFIResult) {
-    let _will_drop: Box<FFIResult> = unsafe { Box::from_raw(originally_from_rust) };
+#[pymethods]
+impl Game {
+    #[new]
+    fn new(name: &str) -> PyResult<Game> {
+        let inner = toybox::get_simulation_by_name(name)
+            .map_err(|e| exceptions::PyLookupError::new_err(e))?;
+        Ok(Self { inner })
+    }
+
+    fn from_json(&self, json_str: &str) -> PyResult<Game> {
+        Ok(Self {
+            inner: self
+                .inner
+                .from_json(json_str)
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?,
+        })
+    }
+
+    fn seed(&mut self, seed: u32) -> PyResult<()> {
+        self.inner.as_mut().reset_seed(seed);
+        Ok(())
+    }
+
+    fn to_json(&self) -> PyResult<String> {
+        Ok(self.inner.to_json())
+    }
+
+    fn config_schema(&self) -> PyResult<String> {
+        Ok(self.inner.schema_for_config())
+    }
+    fn frame_schema(&self) -> PyResult<String> {
+        Ok(self.inner.schema_for_state())
+    }
+
+    fn is_legal(&self, action: i32) -> PyResult<bool> {
+        let actions = self.inner.legal_action_set();
+        if let Some(action) = AleAction::from_int(action) {
+            Ok(actions.contains(&action))
+        } else {
+            Ok(false)
+        }
+    }
+
+    fn frame_size(&self) -> PyResult<(i32, i32)> {
+        Ok(self.inner.game_size())
+    }
+
+    fn legal_actions(&self) -> PyResult<Vec<i32>> {
+        Ok(self
+            .inner
+            .legal_action_set()
+            .into_iter()
+            .map(|x| x.to_int())
+            .collect())
+    }
+
+    fn new_game(&mut self) -> PyResult<State> {
+        Ok(State {
+            shape: self.inner.game_size(),
+            inner: self.inner.as_mut().new_game(),
+        })
+    }
+    fn new_state(&self, json_str: &str) -> PyResult<State> {
+        let state = self
+            .inner
+            .new_state_from_json(json_str)
+            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+        Ok(State {
+            shape: self.inner.game_size(),
+            inner: state,
+        })
+    }
 }
 
-mod core;
-pub use crate::core::*;
+#[pyclass]
+#[derive(Debug, Default, Clone)]
+struct Input {
+    #[pyo3(get, set)]
+    pub left: bool,
+    #[pyo3(get, set)]
+    pub right: bool,
+    #[pyo3(get, set)]
+    pub up: bool,
+    #[pyo3(get, set)]
+    pub down: bool,
+    #[pyo3(get, set)]
+    pub button1: bool,
+    #[pyo3(get, set)]
+    pub button2: bool,
+}
+
+#[pymethods]
+impl Input {
+    #[new]
+    fn new() -> PyResult<Self> {
+        Ok(Self::default())
+    }
+
+    fn reset(&mut self) -> PyResult<()> {
+        self.left = false;
+        self.right = false;
+        self.up = false;
+        self.down = false;
+        self.button1 = false;
+        self.button2 = false;
+        Ok(())
+    }
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
+#[pyclass]
+struct State {
+    shape: (i32, i32),
+    inner: Box<dyn toybox::State + Send>,
+}
+
+#[pymethods]
+impl State {
+    fn copy(&self) -> PyResult<Self> {
+        Ok(Self {
+            shape: self.shape.clone(),
+            inner: self.inner.copy(),
+        })
+    }
+    fn apply_ale_action(&mut self, action: i32) -> PyResult<bool> {
+        if let Some(action) = AleAction::from_int(action) {
+            self.inner.as_mut().update_mut(action.to_input());
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+    fn render_into_buffer(&self, buffer: &PyByteArray, rgba: bool) -> PyResult<()> {
+        let (w, h) = self.shape;
+        let dest: &mut [u8] = unsafe { buffer.as_bytes_mut() };
+        if rgba {
+            let mut img = ImageBuffer::alloc(w, h);
+            img.render(&self.inner.draw());
+            for (src, dest) in img.data.iter().cloned().zip(dest.iter_mut()) {
+                *dest = src;
+            }
+        } else {
+            let mut img = GrayscaleBuffer::alloc(w, h);
+            img.render(&self.inner.draw());
+            for (src, dest) in img.data.iter().cloned().zip(dest.iter_mut()) {
+                *dest = src;
+            }
+        }
+        Ok(())
+    }
+    fn apply_action(&mut self, input: &PyCell<Input>) -> PyResult<()> {
+        let input: PyRef<Input> = input.borrow();
+        let tb_input = toybox_core::Input {
+            left: input.left,
+            right: input.right,
+            up: input.up,
+            down: input.down,
+            button1: input.button1,
+            button2: input.button2,
+        };
+        self.inner.as_mut().update_mut(tb_input);
+        Ok(())
+    }
+
+    fn game_over(&self) -> PyResult<bool> {
+        Ok(self.inner.lives() < 0)
+    }
+    fn lives(&self) -> PyResult<i32> {
+        Ok(self.inner.lives())
+    }
+    fn level(&self) -> PyResult<i32> {
+        Ok(self.inner.level())
+    }
+    fn score(&self) -> PyResult<i32> {
+        Ok(self.inner.score())
+    }
+    fn to_json(&self) -> PyResult<String> {
+        Ok(self.inner.to_json())
+    }
+    fn query(&self, query: &str, options: Option<&str>) -> PyResult<String> {
+        let value = if let Some(opt_json) = options {
+            serde_json::from_str(opt_json).map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
+        } else {
+            serde_json::Value::Null
+        };
+        Ok(self
+            .inner
+            .query_json(query, &value)
+            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?)
+    }
+}

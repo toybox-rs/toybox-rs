@@ -1,2 +1,18 @@
 [workspace]
-members = ["core", "ctoybox", "toybox", "tb_amidar", "tb_breakout", "tb_gridworld", "tb_spaceinvaders", "tb_pong", "bench_games", "newgame"]
+# Recall: members are path names, not package names
+# Packages can be built in isolation with the flag -p
+# e.g., to build toybox-core (path "core"), run:
+# > cargo build -p toybox-core
+members = [
+  "core",
+  "toybox",
+  "tb_amidar",
+  "tb_breakout",
+  "tb_gridworld",
+  "tb_spaceinvaders",
+  "tb_pong",
+  "bench_games",
+]
+
+# See pyO3#341 -- linker errors during cargo test; workaround doesn't work in a workspace...
+exclude = ['ctoybox'] 
