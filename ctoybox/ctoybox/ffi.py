@@ -87,7 +87,11 @@ class Simulator(object):
             sim: optionally a Rust pointer to an existing simulator.
         """
         if sim is None:
-            sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode("utf-8")))
+            try:
+                sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode("utf-8")))
+            except:
+                game_name = game_name.replace("_", "")
+                sim = _handle_ffi_result(lib.simulator_alloc(game_name.encode("utf-8")))
         # sim should be a pointer
         self.game_name = game_name
         self.__sim = sim
