@@ -28,9 +28,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.6
-      - name: cargo test
+      - name: cargo test --release
         run: |
-          cargo test
+          cargo test --release
       - name: py-install
         run: |
           pip install -r ctoybox/requirements.txt
@@ -41,15 +41,15 @@ jobs:
         run: |
           maturin build --release
           pip install ./target/wheels/ctoybox*.whl
-      - name: py-unittest
-        working-directory: ./ctoybox
-        run: |
-          python -I -m unittest discover -s tests -v
       - uses: actions/upload-artifact@v1
         name: upload-wheel
         with:
           name: ${{ matrix.platform }}-wheel
           path: ctoybox/target/wheels/
+      - name: py-unittest
+        working-directory: ./ctoybox
+        run: |
+          python -I -m unittest discover -s tests -v
       - name: '[on-create] pypi-publish'
         if: github.event_name == 'release'
         working-directory: ./ctoybox
