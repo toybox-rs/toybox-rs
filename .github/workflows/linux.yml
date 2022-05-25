@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v1
       - name: maturin-build
         run: |
-          rustup default 1.41.0
+          rustup default 1.54.0
           cd ctoybox && maturin build --release
       - uses: actions/upload-artifact@v1
         name: upload-wheel

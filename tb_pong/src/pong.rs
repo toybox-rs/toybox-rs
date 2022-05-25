@@ -32,9 +32,9 @@ mod screen {
     pub const BALL_START_VELOCITY: (i32, i32) = (-3, 1);
 }
 
-impl Default for PongConfig {
+impl Default for Pong {
     fn default() -> Self {
-        PongConfig {
+        Pong {
             p1_color: Color::rgb(92, 186, 92),
             p2_color: Color::rgb(231, 130, 74),
             bg_color: Color::rgb(144, 72, 17),
@@ -47,7 +47,7 @@ impl Default for PongConfig {
     }
 }
 
-impl toybox_core::Simulation for PongConfig {
+impl toybox_core::Simulation for Pong {
     fn reset_seed(&mut self, _seed: u32) {
         // No randomness in Pong.
     }
@@ -117,7 +117,7 @@ impl toybox_core::Simulation for PongConfig {
         serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
     }
     fn schema_for_config(&self) -> String {
-        let schema = schema_for!(PongConfig);
+        let schema = schema_for!(Pong);
         serde_json::to_string(&schema).expect("JSONSchema should be flawless.")
     }
 }

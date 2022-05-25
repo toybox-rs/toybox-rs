@@ -50,7 +50,7 @@ class TestNoCrash(unittest.TestCase):
     def test_space_invaders(self):
         config = None
         state = None
-        with Toybox("space_invaders") as tb:
+        with Toybox("spaceinvaders") as tb:
             config = tb.config_to_json()
             state = tb.state_to_json()
             self.assertEqual(3, tb.query_state_json("shield_count"))
