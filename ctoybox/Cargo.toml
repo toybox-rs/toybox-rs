@@ -10,7 +10,7 @@ edition = "2018"
 
 [lib]
 name = "ctoybox"
-crate-type = ["cdylib"]
+crate-type = ["rlib", "cdylib"]
 
 [features]
 default = ["pyo3/extension-module"]

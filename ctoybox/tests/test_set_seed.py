@@ -1,4 +1,5 @@
 import unittest
+import ctoybox
 from ctoybox import Toybox, Input
 import numpy as np
 
