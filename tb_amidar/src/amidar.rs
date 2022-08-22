@@ -990,6 +990,7 @@ impl State {
         let core = StateCore {
             rand: random::Gen::new_child(&mut config.rand),
             lives: config.start_lives,
+            is_dead: false,
             score: 0,
             chase_timer: 0,
             jumps: config.start_jumps,
@@ -1126,10 +1127,33 @@ where
     fn level(&self) -> i32 {
         self.state.level
     }
+    fn is_dead(&self) -> bool {
+        self.state.is_dead
+    }
+    fn use_life(&self) {
+        self.state.jumps = self.config.start_jumps;
+        self.state.lives -= 1;
+        self.state.score = pre_update_score;
+        self.reset();
+        // need to double check how we are handling game over    
+    }
+    fn handling_death(&self) -> bool {
+        if self.is_dead() {
+            if buttons.is_firing() {
+                self.use_life()
+            }
+            true
+        }
+        false
+    }
+
     fn update_mut(&mut self, buttons: Input) {
+        if self.handling_death() { return }
         let pre_update_score: i32 = self.score();
         let history_limit = self.config.history_limit;
 
+        // If the player is currently dead, we need to wait until we receive FIRE
+        
         // Move the player and determine whether the board changes.
         if let Some(score_change) = self.state.player.update(
             buttons,
@@ -1220,10 +1244,6 @@ where
 
         // If dead, reset. If alive, check to see if we have advanced to the next level.
         if dead {
-            self.state.jumps = self.config.start_jumps;
-            self.state.lives -= 1;
-            self.state.score = pre_update_score;
-            self.reset();
         } else {
             if self.state.board.board_complete() {
                 self.reset();

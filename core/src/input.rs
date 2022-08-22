@@ -32,6 +32,9 @@ impl Input {
     pub fn is_empty(self) -> bool {
         !self.left && !self.right && !self.up && !self.down && !self.button1 && !self.button2
     }
+    pub fn is_fire(self) -> bool {
+        self.button1
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]

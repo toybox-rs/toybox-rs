@@ -16,6 +16,8 @@ pub struct StateCore {
     pub lives: i32,
     /// What is the current level? 1-based.
     pub level: i32,
+    /// Are we currently dead?
+    pub is_dead: bool,
 }
 
 /// Wrapping the current game config into one struct with the current frame state.

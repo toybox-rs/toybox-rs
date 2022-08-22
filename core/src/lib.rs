@@ -54,6 +54,8 @@ pub trait State {
     fn score(&self) -> i32;
     /// Get the level from the game.
     fn level(&self) -> i32;
+    /// Returns whether we are currently dead, requiring a FIRE to get a new life.
+    fn is_dead(&self) -> bool;
     /// To update internally to the next state, we pass buttons to internal logic.
     fn update_mut(&mut self, buttons: Input);
     /// Any state can create a vector of drawable objects to present itself.

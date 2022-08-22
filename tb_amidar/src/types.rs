@@ -210,6 +210,8 @@ pub struct StateCore {
     pub score: i32,
     /// How many lives does the player posess?
     pub lives: i32,
+    /// Have we just lost a life?
+    pub is_dead: bool,
     /// What is the current level? 1-based.
     pub level: i32,
     /// How many jumps are still available to the player?
