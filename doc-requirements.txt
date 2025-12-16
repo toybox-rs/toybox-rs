@@ -1,6 +1,6 @@
 mkdocs==1.2.3
 mkdocs-jupyter==0.10.2
 mkdocstrings==0.6.1
-pymdown-extensions==10.0
+pymdown-extensions==10.16.1
 matplotlib
 jupyter
